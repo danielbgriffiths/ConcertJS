@@ -153,5 +153,5 @@ function App() {
   );
 }
 
-sliteRuntime('#app', [RegisterGlobals]);
+render('#app', [RegisterGlobals]);
 ```
