@@ -1,0 +1,28 @@
+{
+  "name": "@concertjs/core",
+  "version": "0.0.0",
+  "description": "Core of ConcertJS",
+  "type": "module",
+  "main": "dist/bundle.js",
+  "module": "dist/bundle.esm.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "rollup -c",
+    "prepare": "npm run build"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@babel/core": "^7.25.2",
+    "@types/node": "^22.5.4",
+    "babel-preset-env": "^1.7.0",
+    "rollup": "^4.21.2",
+    "rollup-plugin-node-resolve": "^5.2.0",
+    "rollup-plugin-typescript2": "^0.36.0",
+    "ts-node": "^10.9.2"
+  }
+}

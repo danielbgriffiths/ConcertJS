@@ -1,0 +1,23 @@
+{
+  "name": "@concertjs/babel-preset-concertjs",
+  "version": "0.0.1",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "babel src --out-dir dist",
+    "test": "jest",
+    "clean": "rimraf dist"
+  },
+  "peerDependencies": {
+    "@babel/core": "^7.x",
+    "@babel/plugin-syntax-jsx": "^7.x",
+    "@babel/preset-env": "^7.x",
+    "@babel/preset-typescript": "^7.x",
+    "@babel/helper-plugin-utils": "^7.24.8"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.x",
+    "jest": "^27.x",
+    "rimraf": "^3.x"
+  },
+  "private": false
+}

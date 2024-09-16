@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "target": "ES5",
+    "module": "ES6",
+    "jsx": "preserve",
+    "jsxFactory": "c",
+    "jsxFragmentFactory": "Fragment",
+    "moduleResolution": "node",
+    "outDir": "./dist",
+    "declaration": true,
+    "sourceMap": true,
+    "lib": ["dom", "es6"]
+  },
+  "include": ["src/**/*"]
+}

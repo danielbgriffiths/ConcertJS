@@ -1,0 +1,28 @@
+{
+  "name": "dom-test",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "webpack --config webpack.config.js",
+    "start": "webpack serve --config webpack.config.js --open",
+    "lint": "eslint 'src/**/*.{ts,tsx}'"
+  },
+  "dependencies": {
+    "@concertjs/core": "workspace:*"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.21.0",
+    "@babel/preset-env": "^7.21.0",
+    "@babel/preset-typescript": "^7.21.0",
+    "@concertjs/babel-preset-concertjs": "workspace:*",
+    "@concertjs/eslint-plugin-concertjs": "workspace:*",
+    "@typescript-eslint/eslint-plugin": "^5.10.0",
+    "@typescript-eslint/parser": "^5.10.0",
+    "babel-loader": "^9.1.2",
+    "eslint": "^8.7.0",
+    "typescript": "^5.0.4",
+    "webpack": "^5.65.0",
+    "webpack-cli": "^4.9.1",
+    "webpack-dev-server": "^4.7.3"
+  }
+}

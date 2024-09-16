@@ -1,0 +1,29 @@
+{
+  "name": "@concertjs/eslint-plugin-concertjs",
+  "version": "0.0.1",
+  "description": "ESLint plugin for ConcertJS framework to validate custom JSX attributes",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "babel src --out-dir dist",
+    "test": "jest",
+    "clean": "rimraf dist"
+  },
+  "keywords": [
+    "eslint",
+    "eslint-plugin",
+    "concertjs",
+    "jsx",
+    "custom-jsx-attributes"
+  ],
+  "author": "Daniel Griffiths",
+  "license": "MIT",
+  "peerDependencies": {
+    "eslint": "^7.0.0 || ^8.0.0"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "jest": "^27.x",
+    "rimraf": "^3.x",
+    "@babel/cli": "^7.x"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "name": "concertjs",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "build": "pnpm -r run build",
+    "test": "pnpm -r run test",
+    "lint": "pnpm -r run lint",
+    "dev": "pnpm -r run dev",
+    "clean": "pnpm -r run clean"
+  },
+  "devDependencies": {
+    "typescript": "^4.5.4",
+    "eslint": "^8.4.1",
+    "prettier": "^2.4.1"
+  }
+}
