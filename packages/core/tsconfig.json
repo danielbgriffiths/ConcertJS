@@ -7,9 +7,12 @@
     "jsxFragmentFactory": "Fragment",
     "moduleResolution": "node",
     "outDir": "./dist",
+    "rootDir": "./src",
     "declaration": true,
     "sourceMap": true,
-    "lib": ["dom", "es6"]
+    "lib": ["dom", "es6"],
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true
   },
-  "include": ["src/**/*"]
+  "include": ["src/**/*", "src/jsx.d.ts"]
 }

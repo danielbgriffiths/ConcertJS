@@ -8,7 +8,7 @@ declare namespace JSX {
     [key: string]: any;
   }
 
-  interface IntrinsicAttributes {
+  interface IntrinsicElements {
     for: any;
     of: any;
     map: any;

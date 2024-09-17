@@ -10,12 +10,14 @@
     "dist"
   ],
   "scripts": {
-    "build": "rollup -c",
-    "prepare": "npm run build"
+    "build": "rollup -c && npm run copy-types",
+    "prepare": "npm run build",
+    "copy-types": "cp src/jsx.d.ts dist/"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
+  "peerDependencies": {},
   "devDependencies": {
     "@babel/core": "^7.25.2",
     "@types/node": "^22.5.4",
