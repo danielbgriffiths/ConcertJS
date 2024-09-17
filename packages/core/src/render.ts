@@ -1,22 +1,26 @@
-export function render(element: HTMLElement, root): void {
-  if (!element || !root) return;
+import { ConcertComponent } from "./types";
 
-  const rendered = root();
+export function render(selector: string, component: ConcertComponent): void {
+  const rootRenderFunction = "render" in component ? component.render : component;
 
-  // Clear the element only once before rendering the component
+  const element = document.querySelector(selector);
+  if (!element) {
+    throw new Error(`No element found for selector ${selector}`);
+  }
+
+  const renderedRootComponent = rootRenderFunction();
+
   element.innerHTML = "";
 
   const recurse = (layer: any): void => {
     if (Array.isArray(layer)) {
       layer.forEach(child => recurse(child));
     } else if (layer instanceof HTMLElement) {
-      console.log("render: appendChild(layer): ", layer);
       element.appendChild(layer);
     } else if (typeof layer === "function") {
       element.appendChild(layer());
     }
   };
 
-  // Recurse through the rendered component and append the resulting element
-  recurse(rendered);
+  recurse(renderedRootComponent);
 }

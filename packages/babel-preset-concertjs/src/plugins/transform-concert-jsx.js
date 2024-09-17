@@ -271,7 +271,9 @@ function transformElementToExpression(node) {
   } else if (mapAttr) {
     element = createHElement(tagName, props, [createMapElement(mapAttr, nodeChildren)]);
   } else if (switchAttr) {
-    element = createHElement(tagName, props, [createSwitchElement(switchAttr, cases)]);
+    element = createHElement(tagName, props, [
+      wrapReactiveExpression(createSwitchElement(switchAttr, cases))
+    ]);
   } else if ((pendingAttr || rejectedAttr) && nodeChildren.length) {
     element = createHElement(tagName, props, [
       createHandleAsyncElement(nodeChildren[0], pendingAttr, rejectedAttr)
@@ -301,20 +303,21 @@ module.exports = declare(api => {
             if (path.node.source.value !== "@concertjs/core") return;
 
             path.node.specifiers.forEach(specifier => {
-              if (!specifier.imported || !specifier.imported.name === "h") return;
-              hasHImport = true;
+              if (specifier.imported && specifier.imported.name === "h") {
+                hasHImport = true;
+              }
             });
           }
         });
 
-        if (!hasJSX || !hasHImport) return;
+        if (hasJSX && !hasHImport) {
+          const importDeclaration = t.importDeclaration(
+            [t.importSpecifier(t.identifier("h"), t.identifier("h"))],
+            t.stringLiteral("@concertjs/core")
+          );
 
-        const importDeclaration = t.importDeclaration(
-          [t.importSpecifier(t.identifier("h"), t.identifier("h"))],
-          t.stringLiteral("@concertjs/core")
-        );
-
-        path.node.body.unshift(importDeclaration);
+          path.node.body.unshift(importDeclaration);
+        }
       },
       JSXElement(path) {
         const ifElseChain = processIfElseChain(path);

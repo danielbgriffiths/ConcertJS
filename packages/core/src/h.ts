@@ -1,13 +1,20 @@
 import { effect, memo, signal } from "./index";
+import { ConcertComponent } from "./types";
 
-function createReactiveComponent(type, initialProps: any, initialChildren: any[]) {
+function createReactiveComponent(
+  type: ConcertComponent,
+  initialProps: any,
+  initialChildren: any[]
+) {
+  const renderFunction = "render" in type ? type.render : type;
+
   const [props, setProps] = signal(initialProps ?? {});
   const children = memo(() => initialChildren ?? []);
 
   let currentElement: HTMLElement | DocumentFragment | null = null;
 
   effect(() => {
-    const newElement = type(Object.assign(props(), { children: children() }));
+    const newElement = renderFunction(Object.assign(props(), { children: children() }));
 
     if (
       currentElement !== newElement &&
@@ -20,7 +27,7 @@ function createReactiveComponent(type, initialProps: any, initialChildren: any[]
     currentElement = newElement as any;
   });
 
-  currentElement = type(Object.assign(props(), { children: children() })) as any;
+  currentElement = renderFunction(Object.assign(props(), { children: children() })) as any;
 
   return {
     element: currentElement,
@@ -31,16 +38,15 @@ function createReactiveComponent(type, initialProps: any, initialChildren: any[]
 }
 
 export function h(
-  type,
+  type: ConcertComponent | string,
   props: any,
   ...children: any[]
 ): HTMLElement | DocumentFragment | string | null {
   console.log("h: ", type, props, children);
 
   if (typeof type === "function") {
-    const componentInstance = createReactiveComponent(type as any, props, children);
+    const componentInstance = createReactiveComponent(type, props, children);
 
-    // Monitor prop changes and update them reactively, but avoid unnecessary re-renders
     effect(() => {
       componentInstance.updateProps(props);
     });
@@ -48,10 +54,8 @@ export function h(
     return componentInstance.element;
   }
 
-  // Handle standard HTML elements
-  const element = document.createElement(type);
+  const element = document.createElement(type as string);
 
-  // Set up attributes and events
   if (props) {
     const eventMap: { [k: string]: string } = {
       onClick: "click"
@@ -74,18 +78,28 @@ export function h(
     });
   }
 
-  // Handle children
   children.forEach((child): void => {
     if (typeof child === "string" || typeof child === "number") {
       element.appendChild(document.createTextNode(String(child)));
     } else if (child instanceof Node) {
       element.appendChild(child);
     } else if (typeof child === "function") {
-      const textNode = document.createTextNode(child());
-      element.appendChild(textNode);
-      effect(() => {
-        textNode.nodeValue = child();
-      });
+      let childResult = child();
+
+      if (childResult instanceof HTMLElement) {
+        const childElement = document.createElement(childResult.tagName);
+        childElement.innerHTML = childResult.innerHTML;
+        element.appendChild(childElement);
+        effect(() => {
+          childElement.innerHTML = child().innerHTML;
+        });
+      } else {
+        const textNode = document.createTextNode(childResult);
+        element.appendChild(textNode);
+        effect(() => {
+          textNode.nodeValue = child();
+        });
+      }
     }
   });
 

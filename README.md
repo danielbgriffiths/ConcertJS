@@ -40,8 +40,6 @@ Conduct complex UIs with ease. Code in Concert, creating a symphony of fine-grai
 ### Example Style
 
 ```typescript jsx
-import { ConcertRouter, signal, memo, effect, Inject, Root, Route, With } from 'slitejs';
-
 // Mock Service
 function ItemsService() {
   const items = [
@@ -49,7 +47,7 @@ function ItemsService() {
     'Another Item',
     'A Third Item'
   ];
-  
+
   return {
     fetchAll: () => new Promise((resolve) => {
       resolve(items);
@@ -60,10 +58,13 @@ function ItemsService() {
   }
 }
 
+// counter.tsx (functional component)
+import {signal, memo, effect} from "@concertjs/core";
+
 function Counter(props) {
   const [count, setCount] = signal(props.defaultCount);
   const double = memo(() => count() * 2);
-  
+
   effect(() => {
     props.onCountChange(count());
   });
@@ -78,6 +79,9 @@ function Counter(props) {
   );
 }
 
+// navigation.tsx (functional component)
+import {Link} from '@concertjs/router';
+
 function Navigation() {
   return (
     <ul>
@@ -87,71 +91,106 @@ function Navigation() {
   );
 }
 
+// footer.tsx (structured component)
+import {Inject} from '@concertjs/core';
+import {ConcertRouter} from '@concertjs/router';
+
 @Inject(ConcertRouter)
-function Footer(props, { router }) {
-  return (
-    <div>
-      <button onClick={() => router.navigate('/donate')}>Click to Donate</button>
-    </div>
-  );
+class Footer {
+  static render(props, {router}) {
+    return (
+      <div>
+        <button onClick={() => router.navigate('/donate')}>Click to Donate</button>
+      </div>
+    );
+  }
 }
+
+// donate.tsx (structured component)
+import {Route} from '@concertjs/router';
 
 @Route('/donate')
-function Donate() {
-  return (
-    <div>
-    </div>
-  );
-}
-
-@Route('/dashboard', { defaultCount: 1 }, [AdminGuard, UserGuard])
-function Dashboard(props) {
-  const [count, setCount] = signal(props.defaultCount);
-  
-  return (
-    <div>
-      <Counter defaultCount={props.defaultCount} onCountChange={setCount} />
-      <div switch={count()}>
-        <div case={1}>Count is 1</div>
-        <div case={2}>Count is 2</div>
-        <div case={3}>Count is 3</div>
-        <div case>No case matched</div>
+class Donate {
+  static render() {
+    return (
+      <div>
       </div>
-    </div>
-  );
+    );
+  }
 }
 
+// dashboard.tsx (structured component)
+import {signal} from '@concertjs/core';
+import {Route} from '@concertjs/router';
+import {UserGuard} from './guards';
+
+@Route('/dashboard', {defaultCount: 1}, [UserGuard])
+class Dashboard {
+  static render(props) {
+    const [count, setCount] = signal(props.defaultCount);
+
+    return (
+      <div>
+        <Counter defaultCount={props.defaultCount} onCountChange={setCount} />
+        <div switch={count()}>
+          <div case={1}>Count is 1</div>
+          <div case={2}>Count is 2</div>
+          <div case={3}>Count is 3</div>
+          <div case>No case matched</div>
+        </div>
+      </div>
+    );
+  }
+}
+
+// items-service.tsx
 function getListItems(): Promise<number> {
   return new Promise((resolve) => {
     setTimeout(() => resolve([1, 2, 3, 4]), 100);
   });
 }
 
-@Route('/', async (route, { itemsService }) => ({
+// home.tsx (structured component)
+import {Inject} from '@concertjs/core';
+import {Route} from '@concertjs/router';
+import {ItemsService} from './services';
+
+@Route('/', async (route, {itemsService}) => ({
   listItems: await itemsService.fetchAll()
 }))
 @Inject(ItemsService)
-function Home(props, instance) {
-  return (
-    <div pending={<div>Is Loading</div>} fallback={<div>Failed</div>}>
-      <div for={props.listItems}>
-        {(item) => <div onClick={() => instance.itemsService.fetchItem(item)}>{item}</div>}
+class Home {
+  static render(props, instance) {
+    return (
+      <div pending={<div>Is Loading</div>} fallback={<div>Failed</div>}>
+        <div for={props.listItems}>
+          {(item) => <div onClick={() => instance.itemsService.fetchItem(item)}>{item}</div>}
+        </div>
       </div>
-    </div>
-  );
+    );
+  }
 }
+
+// app.tsx (structured component)
+import {Root, With} from '@concertjs/core';
+import {ConcertRouter} from '@concertjs/router';
+import {Navigation, Footer} from './components';
+import {ItemsService} from './services';
 
 @Root()
 @With(ItemsService, ConcertRouter)
-function App() {
-  return (
-    <div>
-      <Navigation />
-      <ConcertRouteSlot />
-      <Footer />
-    </div>
-  );
+class App {
+  static render(props) {
+    return (
+      <>
+        <Navigation />
+        <ConcertRouteSlot />
+        <Footer />
+      </>
+    );
+  }
 }
 
-sliteRuntime('#app', [RegisterGlobals]);
+// index.ts
+render('#app', [RegisterGlobals]);
 ```
