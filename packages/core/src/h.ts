@@ -1,7 +1,11 @@
 import { effect, memo, signal } from "./index";
-import { ConcertComponent } from "./types";
+import { ComponentNode, ConcertComponent } from "./types";
+import { createUID, ROOT_UID } from "./utils";
 
-function createReactiveComponent(
+export const componentTree = new Map<string, ComponentNode>();
+const componentStack = [];
+
+export function createReactiveComponent(
   type: ConcertComponent,
   initialProps: any,
   initialChildren: any[]
@@ -13,8 +17,26 @@ function createReactiveComponent(
 
   let currentElement: HTMLElement | DocumentFragment | null = null;
 
+  const uniqueId = createUID();
+
   effect(() => {
-    const newElement = renderFunction(Object.assign(props(), { children: children() }));
+    const parentUid =
+      componentStack.length > 0 ? componentStack[componentStack.length - 1] : ROOT_UID;
+    const services = "render" in type ? Object.assign({}, type.services ?? {}) : {};
+    const component = {
+      uid: uniqueId,
+      type,
+      props: initialProps,
+      children: initialChildren,
+      services: services,
+      parent: parentUid
+    };
+    componentTree.set(uniqueId, component);
+    componentStack.push(uniqueId);
+
+    const newElement = renderFunction(Object.assign(props() ?? {}, { children: children() }));
+
+    componentStack.pop();
 
     if (
       currentElement !== newElement &&
@@ -27,11 +49,9 @@ function createReactiveComponent(
     currentElement = newElement as any;
   });
 
-  currentElement = renderFunction(Object.assign(props(), { children: children() })) as any;
-
   return {
     element: currentElement,
-    updateProps: (nextProps: any) => {
+    updateProps: (nextProps: Record<string, any>): void => {
       setProps(nextProps);
     }
   };
@@ -63,13 +83,12 @@ export function h(
 
     Object.entries(props).forEach(([key, value]): void => {
       if (key in eventMap) {
-        const event = key.toLowerCase() as keyof HTMLElementEventMap;
         element.addEventListener(
           eventMap[key],
           value as unknown as EventListenerOrEventListenerObject
         );
       } else if (typeof value === "function") {
-        effect(() => {
+        effect((): void => {
           element.setAttribute(key, value());
         });
       } else {

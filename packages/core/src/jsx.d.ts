@@ -8,7 +8,8 @@ declare namespace JSX {
     [key: string]: any;
   }
 
-  interface IntrinsicElements {
+  interface ElementChildrenAttribute {
+    children?: {};
     for: any;
     of: any;
     map: any;
@@ -19,9 +20,5 @@ declare namespace JSX {
     case: any;
     pending: any;
     rejected: any;
-  }
-
-  interface ElementChildrenAttribute {
-    children?: {};
   }
 }

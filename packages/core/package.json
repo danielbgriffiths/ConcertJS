@@ -17,13 +17,13 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "peerDependencies": {},
   "devDependencies": {
     "@babel/core": "^7.25.2",
+    "@babel/preset-env": "^7.x",
+    "@babel/preset-typescript": "^7.x",
+    "@rollup/plugin-node-resolve": "^15.2.3",
     "@types/node": "^22.5.4",
-    "babel-preset-env": "^1.7.0",
     "rollup": "^4.21.2",
-    "rollup-plugin-node-resolve": "^5.2.0",
     "rollup-plugin-typescript2": "^0.36.0",
     "ts-node": "^10.9.2"
   }
