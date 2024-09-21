@@ -191,7 +191,7 @@ class App {
   }
 }
 
-// index.ts
+// index.tsx
 render('#app', [RegisterGlobals]);
 ```
 

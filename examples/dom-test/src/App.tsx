@@ -1,7 +1,8 @@
-import { effect, memo, signal, ConcertLog } from "@concertjs/core";
+import { ConcertLog, effect, memo, signal } from "@concertjs/core";
 
 import { CountDisplay } from "./components/CountDisplay";
 import { CountButton } from "./components/CountButton";
+import { Navigation } from "./components/Navigation";
 
 export class App {
   @ConcertLog
@@ -19,6 +20,8 @@ export class App {
 
     return (
       <div>
+        <h1>Home Page</h1>
+        <Navigation />
         <CountDisplay count={count()} double={double()} />
         <CountButton onIncrement={() => setCount(count() + 1)} />
         {count() === 1 && <p>Count is 1</p>}
