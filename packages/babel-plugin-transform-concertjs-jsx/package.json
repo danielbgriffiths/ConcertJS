@@ -1,5 +1,5 @@
 {
-  "name": "@concertjs/babel-preset-concertjs",
+  "name": "@concertjs/babel-plugin-transform-concertjs-jsx",
   "version": "0.0.1",
   "main": "dist/index.js",
   "scripts": {
@@ -9,12 +9,7 @@
   },
   "peerDependencies": {
     "@babel/core": "^7.x",
-    "@babel/helper-plugin-utils": "^7.24.8",
-    "@babel/plugin-syntax-jsx": "^7.x",
-    "@babel/preset-env": "^7.x",
-    "@babel/preset-typescript": "^7.x",
-    "@babel/plugin-proposal-decorators": "^7.24.7",
-    "@concertjs/babel-plugin-transform-concertjs-jsx": "workspace:*"
+    "@babel/helper-plugin-utils": "^7.24.8"
   },
   "devDependencies": {
     "@babel/cli": "^7.x",

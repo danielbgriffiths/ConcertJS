@@ -289,7 +289,7 @@ module.exports = declare(api => {
   api.assertVersion(7);
 
   return {
-    name: "transform-concert-jsx",
+    name: "transform-concertjs-jsx",
     visitor: {
       Program(path) {
         let hasJSX = false;
