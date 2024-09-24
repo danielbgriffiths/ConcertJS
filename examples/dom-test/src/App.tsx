@@ -12,9 +12,17 @@ export class App {
       setCount(count() + 1);
     }, 1000);
 
-    effect(() => {
+    const stopEffect = effect(() => {
       console.log("count: ", count());
+
+      return () => {
+        console.log("cleanup");
+      };
     });
+
+    setTimeout(() => {
+      stopEffect();
+    }, 3000);
 
     return (
       <div>

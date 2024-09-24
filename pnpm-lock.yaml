@@ -70,6 +70,25 @@ importers:
         specifier: ^4.7.3
         version: 4.15.2(webpack-cli@4.10.0)(webpack@5.94.0)
 
+  packages/babel-plugin-transform-concertjs-jsx:
+    dependencies:
+      '@babel/core':
+        specifier: ^7.x
+        version: 7.25.2
+      '@babel/helper-plugin-utils':
+        specifier: ^7.24.8
+        version: 7.24.8
+    devDependencies:
+      '@babel/cli':
+        specifier: ^7.x
+        version: 7.25.6(@babel/core@7.25.2)
+      jest:
+        specifier: ^27.x
+        version: 27.5.1
+      rimraf:
+        specifier: ^3.x
+        version: 3.0.2
+
   packages/babel-preset-concertjs:
     dependencies:
       '@babel/core':
@@ -96,6 +115,9 @@ importers:
       '@babel/preset-typescript':
         specifier: ^7.x
         version: 7.24.7(@babel/core@7.25.2)
+      '@concertjs/babel-plugin-transform-concertjs-jsx':
+        specifier: workspace:*
+        version: link:../babel-plugin-transform-concertjs-jsx
     devDependencies:
       '@babel/cli':
         specifier: ^7.x

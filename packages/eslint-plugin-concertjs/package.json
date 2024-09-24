@@ -20,7 +20,6 @@
   "peerDependencies": {
     "eslint": "^7.0.0 || ^8.0.0"
   },
-  "dependencies": {},
   "devDependencies": {
     "jest": "^27.x",
     "rimraf": "^3.x",
