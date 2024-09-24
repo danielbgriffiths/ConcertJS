@@ -8,13 +8,19 @@ module.exports = {
     path: path.resolve(__dirname, "public")
   },
   resolve: {
-    extensions: [".ts", ".tsx", ".js"]
+    extensions: [".ts", ".tsx", ".js", ".jsx"]
   },
   module: {
     rules: [
       {
-        test: /\.(ts|tsx)$/,
-        use: "babel-loader"
+        test: /\.(ts|tsx|js|jsx)$/,
+        exclude: /node_modules/,
+        use: {
+          loader: "babel-loader",
+          options: {
+            cacheDirectory: false
+          }
+        }
       }
     ]
   },

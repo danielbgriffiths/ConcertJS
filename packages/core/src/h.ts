@@ -1,4 +1,4 @@
-import { effect, memo, signal } from "./index";
+import { effect, memo, signal } from "@concertjs/reactivity";
 import { ConcertComponent } from "./types";
 
 function createReactiveComponent(

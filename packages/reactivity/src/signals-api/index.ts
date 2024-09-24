@@ -1,4 +1,14 @@
-import { ConcertEffectFn, ConcertSignal, ConcertSignalGetter, ConcertSignalSetter } from "./types";
+export type ConcertSignalGetter<T = any> = () => T;
+
+export type ConcertSignalSetter<T = any> = (nextValue: T | ((previous: T) => void)) => void;
+
+export type ConcertSignal<T = any> = [ConcertSignalGetter<T>, ConcertSignalSetter<T>];
+
+export type ConcertEffectCallbackReturn = void | (() => void);
+
+export type ConcertEffectFn = () => ConcertEffectCallbackReturn;
+
+export type ConcertCancelEffectFn = () => void;
 
 let activeEffect: null | (() => void) = null;
 const effectStack: (() => void)[] = [];
@@ -54,18 +64,28 @@ export function signal<T>(initialValue: T): ConcertSignal<T> {
   return [get, set];
 }
 
-export function effect(effectFn: ConcertEffectFn): void {
+export function effect(effectFn: ConcertEffectFn): ConcertCancelEffectFn {
+  let onCleanup!: (() => void) | void | Promise<void> | Promise<() => void>;
+
   const effect = (): void => {
     cleanupEffect(effect);
     activeEffect = effect;
 
     effectStack.push(effect);
-    effectFn();
+    onCleanup = effectFn();
     effectStack.pop();
     activeEffect = effectStack[effectStack.length - 1] || null;
   };
 
   effect();
+
+  return (): void => {
+    if (typeof onCleanup === "function") {
+      onCleanup();
+    }
+
+    cleanupEffect(effect);
+  };
 }
 
 export function memo<T = any>(computedFn: () => T): ConcertSignalGetter<T> {

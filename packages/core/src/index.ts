@@ -1,6 +1,6 @@
 export { h } from "./h";
 export { render } from "./render";
-export { signal, memo, effect } from "./signals";
+export { signal, memo, effect } from "@concertjs/reactivity";
 export type {
   ConcertSignalGetter,
   ConcertSignalSetter,
