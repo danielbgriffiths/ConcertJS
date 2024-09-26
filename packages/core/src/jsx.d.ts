@@ -1,5 +1,5 @@
 declare namespace JSX {
-  type Element = string | HTMLElement | HTMLElement[] | DocumentFragment | null;
+  type Element = number | string | HTMLElement | HTMLElement[] | DocumentFragment | null;
 
   interface IntrinsicElements {
     div: any;

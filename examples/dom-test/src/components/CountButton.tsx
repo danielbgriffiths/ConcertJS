@@ -1,7 +1,8 @@
-export function CountButton(props) {
-  function onClickIncrement() {
-    props.onIncrement();
-  }
+import { ConcertLog } from "@concertjs/core";
 
-  return <button onClick={onClickIncrement}>Increment</button>;
+export class CountButton {
+  @ConcertLog
+  static render(props) {
+    return <button onClick={props.onIncrement}>Increment</button>;
+  }
 }

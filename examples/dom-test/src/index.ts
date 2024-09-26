@@ -1,5 +1,5 @@
-import { render } from "@concertjs/core";
+import { mount } from "@concertjs/core";
 
 import { App } from "./App";
 
-render("#app", App);
+mount("#app", App);
