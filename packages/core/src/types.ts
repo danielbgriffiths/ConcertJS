@@ -8,8 +8,8 @@ export type ConcertEffectFn = () => void;
 
 export type ConcertInstance = {};
 
-export declare class ConcertStructuralComponent {
-  render<P = any>(): ConcertFunctionalComponent<P>;
+export declare class ConcertStructuralComponent<P = any> {
+  render: ConcertFunctionalComponent<P>;
 }
 
 export type ConcertFunctionalComponent<P = any> = (

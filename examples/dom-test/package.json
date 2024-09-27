@@ -5,12 +5,14 @@
   "scripts": {
     "build": "webpack --config webpack.config.js",
     "start": "webpack serve --config webpack.config.js --open",
-    "lint": "eslint 'src/**/*.{ts,tsx}'"
+    "lint": "eslint 'src/**/*.{ts,tsx}'",
+    "babel-build": "babel src --out-dir dist --extensions \".ts,.tsx\""
   },
   "dependencies": {
     "@concertjs/core": "workspace:*"
   },
   "devDependencies": {
+    "@babel/cli": "^7.x",
     "@babel/core": "^7.21.0",
     "@babel/preset-env": "^7.21.0",
     "@babel/preset-typescript": "^7.21.0",

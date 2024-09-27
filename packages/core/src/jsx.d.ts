@@ -1,5 +1,15 @@
 declare namespace JSX {
-  type Element = string | HTMLElement | HTMLElement[] | DocumentFragment | null;
+  type ElementTypes =
+    | number
+    | string
+    | boolean
+    | object
+    | HTMLElement
+    | DocumentFragment
+    | null
+    | undefined;
+
+  type Element = ElementTypes | ElementTypes[];
 
   interface IntrinsicElements {
     div: any;
@@ -8,7 +18,7 @@ declare namespace JSX {
     [key: string]: any;
   }
 
-  interface IntrinsicElements {
+  interface IntrinsicAttributes {
     for: any;
     of: any;
     map: any;
@@ -19,6 +29,7 @@ declare namespace JSX {
     case: any;
     pending: any;
     rejected: any;
+    class: string;
   }
 
   interface ElementChildrenAttribute {

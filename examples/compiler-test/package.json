@@ -1,0 +1,19 @@
+{
+  "name": "compiler-test",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "babel src --out-dir babel-dist --extensions \".ts,.tsx\""
+  },
+  "dependencies": {
+    "@concertjs/core": "workspace:*"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.x",
+    "@babel/core": "^7.25.2",
+    "@babel/preset-typescript": "^7.21.0",
+    "@concertjs/babel-preset-concertjs": "workspace:*",
+    "@concertjs/eslint-plugin-concertjs": "workspace:*",
+    "typescript": "^5.6.2"
+  }
+}
