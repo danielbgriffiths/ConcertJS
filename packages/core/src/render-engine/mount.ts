@@ -1,4 +1,6 @@
 import { ConcertComponent } from "../types";
+import { observeCleanupLifecycle } from "./lifecycle-hooks";
+import { RenderContext, setActiveRenderContext } from "./render-context";
 
 function traverse(layer: JSX.Element, element: HTMLElement): void {
   if (Array.isArray(layer)) {
@@ -6,7 +8,7 @@ function traverse(layer: JSX.Element, element: HTMLElement): void {
   } else if (layer instanceof HTMLElement) {
     element.appendChild(layer);
   } else if (typeof layer === "function") {
-    element.appendChild(layer());
+    element.appendChild((layer as Function)());
   } else {
     throw new Error(`Invalid root layer: ${layer}`);
   }
@@ -21,10 +23,32 @@ export function mount(selector: string, component: ConcertComponent): void {
     throw new Error(`No element found for selector ${selector}`);
   }
 
-  const renderedRootComponent: JSX.Element = rootRenderFunction();
+  let renderedRootComponent!: JSX.Element;
 
-  element.innerHTML = "";
+  try {
+    const renderContext = new RenderContext();
 
-  traverse(renderedRootComponent, element);
+    setActiveRenderContext(renderContext);
+
+    renderedRootComponent = rootRenderFunction();
+
+    renderContext.runMounts();
+
+    if ((renderedRootComponent as any).__cleanupFns == null) {
+      (renderedRootComponent as any).__cleanupFns = [];
+    }
+
+    (renderedRootComponent as any).__cleanupFns.push(() => {
+      renderContext.runCleanups();
+    });
+  } finally {
+    setActiveRenderContext(undefined);
+
+    element.innerHTML = "";
+
+    traverse(renderedRootComponent, element);
+
+    observeCleanupLifecycle();
+  }
 }
 // val was here ;)

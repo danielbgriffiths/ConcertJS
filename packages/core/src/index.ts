@@ -1,6 +1,6 @@
 export { signal, memo, effect } from "@concertjs/reactivity";
 
-export { mount, h } from "./render-engine";
+export { mount, h, onMount, onCleanup } from "./render-engine";
 export type {
   ConcertSignalGetter,
   ConcertSignalSetter,
