@@ -3,6 +3,7 @@ import { observeCleanupLifecycle } from "./lifecycle-hooks";
 import { RenderContext, setActiveRenderContext } from "./render-context";
 
 function traverse(layer: JSX.Element, element: HTMLElement): void {
+  console.log("layer: ", layer);
   if (Array.isArray(layer)) {
     layer.forEach(child => traverse(child, element));
   } else if (layer instanceof HTMLElement) {

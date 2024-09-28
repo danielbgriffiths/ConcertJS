@@ -2,10 +2,12 @@ const presetEnv = require("@babel/preset-env");
 const presetTypescript = require("@babel/preset-typescript");
 const syntaxJSX = require("@babel/plugin-syntax-jsx");
 const decorators = require("@babel/plugin-proposal-decorators");
-const transformConcertJSX = require("@concertjs/babel-plugin-transform-concertjs-jsx");
-
 const transformClassProperties = require("@babel/plugin-transform-class-properties");
 const transformRuntime = require("@babel/plugin-transform-runtime");
+const transformConcertJSX = require("@concertjs/babel-plugin-transform-concertjs-jsx");
+
+const collectConcertRoutes = require("./plugins/collect-concertjs-routes");
+const importConcertPragma = require("./plugins/import-concertjs-pragma");
 
 module.exports = function BabelPresetConcertJS(api, options = {}) {
   api.assertVersion(7);
@@ -16,9 +18,11 @@ module.exports = function BabelPresetConcertJS(api, options = {}) {
       presetTypescript
     ],
     plugins: [
-      [decorators, { legacy: true }],
-      transformClassProperties,
+      collectConcertRoutes,
+      [decorators, { decoratorsBeforeExport: true }],
+      [transformClassProperties, { loose: false }],
       transformRuntime,
+      importConcertPragma,
       syntaxJSX,
       transformConcertJSX
     ]

@@ -3,8 +3,8 @@ import { ConcertLog, effect, memo, onCleanup, onMount, signal } from "@concertjs
 import { CountDisplay } from "./CountDisplay";
 import { CountButton } from "./CountButton";
 
+@ConcertLog
 export class Counter {
-  @ConcertLog
   static render() {
     const [count, setCount] = signal(0);
     const double = memo(() => count() * 2);

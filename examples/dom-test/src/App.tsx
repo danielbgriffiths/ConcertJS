@@ -1,9 +1,9 @@
 import { ConcertLog, onMount, onCleanup } from "@concertjs/core";
 
-import { Counter } from "./components/Counter";
+import { Home } from "./pages/Home";
 
+@ConcertLog
 export class App {
-  @ConcertLog
   static render() {
     onMount(() => {
       console.log("Mounted App");
@@ -15,7 +15,7 @@ export class App {
 
     return (
       <div autofocus class="app-wrapper">
-        <Counter />
+        <Home />
       </div>
     );
   }
