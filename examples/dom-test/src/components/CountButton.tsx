@@ -1,7 +1,7 @@
 import { ConcertLog, onCleanup, onMount } from "@concertjs/core";
 
+@ConcertLog
 export class CountButton {
-  @ConcertLog
   static render(props) {
     onMount(() => {
       console.log("Mounted CountButton");

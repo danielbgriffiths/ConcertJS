@@ -1,7 +1,7 @@
 import { ConcertLog, effect, onCleanup, onMount } from "@concertjs/core";
 
+@ConcertLog
 export class CountDisplay {
-  @ConcertLog
   static render(props) {
     onMount(() => {
       console.log("Mounted CountDisplay");
