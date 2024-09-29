@@ -1,6 +1,7 @@
 import { ConcertLog, onCleanup, onMount, Route } from "@concertjs/core";
 
 import { Counter } from "../components/Counter";
+import { ToDoList } from "../components/ToDoList";
 
 @Route("/")
 @ConcertLog
@@ -17,6 +18,7 @@ export class Home {
     return (
       <div class="home-wrapper">
         <Counter />
+        <ToDoList />
       </div>
     );
   }

@@ -24,12 +24,17 @@ export function onCleanup(cleanupFnCallback: () => void): () => void {
   return activeRenderContext.removeCleanup.bind(activeRenderContext, cleanupFnCallback);
 }
 
-export function replaceChild(parent: Node, newChild: Node, oldChild: Node): void {
-  runCleanupFns(oldChild);
-  parent.replaceChild(newChild, oldChild);
+export function replaceChild(parent: Node, newChild: Node, oldChild?: Node): void {
+  if (oldChild) {
+    runCleanupFns(oldChild);
+    parent.replaceChild(newChild, oldChild);
+  } else {
+    parent.appendChild(newChild);
+  }
 }
 
 export function removeChild(parent: Node, child: Node): void {
+  if (!child) return;
   runCleanupFns(child);
   parent.removeChild(child);
 }

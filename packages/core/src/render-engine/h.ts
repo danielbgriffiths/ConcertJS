@@ -24,77 +24,98 @@ function context() {
     element.appendChild(child);
   }
 
-  function appendElementWithEffect(
-    element: HTMLElement,
-    child: () => HTMLElement,
-    childResult: HTMLElement
-  ) {
-    let placeholderNode: HTMLElement = childResult;
-    appendNode(element, placeholderNode);
-
-    const stopEffect = effect(() => {
-      const newNode = child();
-      replaceChild(element, newNode, placeholderNode);
-      placeholderNode = newNode;
-
-      return (): void => {
-        console.debug("cleanup: appendHTMLElementWithEffect: ", placeholderNode);
-        element.removeChild(placeholderNode);
-      };
-    });
-
-    if (!(element as any).__cleanupFns) {
-      (element as any).__cleanupFns = [];
-    }
-    (element as any).__cleanupFns.push(stopEffect);
-  }
-
-  function appendTextNodeWithEffect(
-    element: HTMLElement,
-    child: () => string,
-    childResult: string
-  ): void {
-    let placeholderNode: Node = document.createTextNode(String(childResult));
-    element.appendChild(placeholderNode);
-
-    const stopEffect = effect(() => {
-      const effectChildResult = child();
-      const newNode = document.createTextNode(String(effectChildResult));
-      replaceChild(element, newNode, placeholderNode);
-      placeholderNode = newNode;
-
-      return (): void => {
-        console.debug("cleanup: appendTextNodeWithEffect: ", placeholderNode);
-        element.removeChild(placeholderNode);
-      };
-    });
-
-    if (!(element as any).__cleanupFns) {
-      (element as any).__cleanupFns = [];
-    }
-    (element as any).__cleanupFns.push(stopEffect);
-  }
-
   function handleTagElementFunctionChild(element: HTMLElement, child: Function): void {
     let childResult: JSX.Element = child();
 
-    if (childResult instanceof Node || childResult instanceof HTMLElement) {
-      appendElementWithEffect(element, child as () => HTMLElement, childResult as HTMLElement);
-    } else if (typeof childResult === "function") {
-      handleTagElementFunctionChild(element, childResult as () => JSX.Element);
-    } else if (
-      typeof childResult === "string" ||
-      typeof childResult === "number" ||
-      typeof childResult === "boolean"
-    ) {
-      appendTextNodeWithEffect(element, child as () => string, childResult as string);
-    } else if (Array.isArray(childResult)) {
-      childResult.forEach(nestedChild => handleTagElementChild(element, nestedChild));
-    } else if (child == null) {
-      // Do nothing
+    let placeholderNodeMap: Map<number, Node> = new Map();
+    let placeholderNode!: Node;
+
+    if (Array.isArray(childResult)) {
+      for (let i = 0; i < childResult.length; i++) {
+        if (childResult[i] instanceof Node) {
+          placeholderNodeMap.set(i, childResult[i] as Node);
+        } else if (
+          typeof childResult[i] === "string" ||
+          typeof childResult[i] === "number" ||
+          typeof childResult[i] === "boolean"
+        ) {
+          placeholderNodeMap.set(i, document.createTextNode(String(childResult)));
+        }
+      }
+
+      for (const node of placeholderNodeMap.values()) {
+        element.appendChild(node);
+      }
     } else {
-      console.warn("Unhandled child type:", child);
+      if (childResult instanceof Node) {
+        placeholderNode = childResult;
+      } else if (
+        typeof childResult === "string" ||
+        typeof childResult === "number" ||
+        typeof childResult === "boolean"
+      ) {
+        placeholderNode = document.createTextNode(String(childResult));
+      }
+
+      element.appendChild(placeholderNode);
     }
+
+    const stopEffect = effect(() => {
+      childResult = child();
+
+      if (Array.isArray(childResult)) {
+        childResult.forEach((nestedChild, i) => {
+          if (nestedChild instanceof Node) {
+            const newNode = nestedChild;
+            replaceChild(element, newNode, placeholderNodeMap.get(i)!);
+            placeholderNodeMap.set(i, newNode);
+          } else if (
+            typeof nestedChild === "string" ||
+            typeof nestedChild === "number" ||
+            typeof nestedChild === "boolean"
+          ) {
+            const newNode = document.createTextNode(String(nestedChild));
+            replaceChild(element, newNode, placeholderNodeMap.get(i)!);
+            placeholderNodeMap.set(i, newNode);
+          } else {
+            console.warn("Unhandled child type:", child);
+          }
+        });
+      } else {
+        if (childResult instanceof Node) {
+          const newNode = childResult;
+          replaceChild(element, newNode, placeholderNode);
+          placeholderNode = newNode;
+        } else if (
+          typeof childResult === "string" ||
+          typeof childResult === "number" ||
+          typeof childResult === "boolean"
+        ) {
+          const newNode = document.createTextNode(String(childResult));
+          replaceChild(element, newNode, placeholderNode);
+          placeholderNode = newNode;
+        } else {
+          console.warn("Unhandled child type:", child);
+        }
+      }
+
+      return (): void => {
+        if (placeholderNode) {
+          console.debug("cleanup: handleTagElementFunctionChild: ", placeholderNode);
+          element.removeChild(placeholderNode);
+        } else if (placeholderNodeMap.size) {
+          placeholderNodeMap.forEach((node, i) => {
+            console.debug("array-cleanup: handleTagElementFunctionChild: ", node);
+            element.removeChild(node);
+          });
+        }
+      };
+    });
+
+    if (!(element as any).__cleanupFns) {
+      (element as any).__cleanupFns = [];
+    }
+    (element as any).__cleanupFns.push(stopEffect);
   }
 
   function handleTagElementChild(element: HTMLElement, child: JSX.Element): void {
@@ -110,8 +131,6 @@ function context() {
       typeof child === "boolean"
     ) {
       appendTextNode(element, child);
-    } else if (child == null) {
-      // Do nothing
     } else {
       console.warn("Unhandled child type:", child);
     }
