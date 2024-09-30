@@ -1,20 +1,52 @@
 import { effect } from "@concertjs/reactivity";
 import { ConcertComponent } from "../types";
-import { EVENTS } from "../constants";
+import { EVENTS, TAG_NAMES } from "../constants";
 import { RenderContext, setActiveRenderContext } from "./render-context";
 import { replaceChild } from "./lifecycle-hooks";
+
+type Primitive = string | number | boolean | symbol | bigint | undefined;
+
+type Tag = keyof HTMLElementTagNameMap;
 
 function context() {
   let cleanupFns: Array<() => void> = [];
 
-  function isComponent(componentOrTag: string | ConcertComponent): boolean {
+  function getRenderFn(component: ConcertComponent): Function {
+    return "render" in component ? component.render : component;
+  }
+
+  function isPrimitive(value: any): value is Primitive {
+    return (
+      typeof value === "string" ||
+      typeof value === "number" ||
+      typeof value === "boolean" ||
+      typeof value === "symbol" ||
+      typeof value === "bigint" ||
+      typeof value === "undefined"
+    );
+  }
+
+  function isNode(value: any): value is Node {
+    return value instanceof Node;
+  }
+
+  function isFunction(value: any): value is Function {
+    return typeof value === "function";
+  }
+
+  function isArrayOfNodes(value: any): value is Array<Node> {
+    return Array.isArray(value) && value.every(isNode);
+  }
+
+  function isComponent(componentOrTag: Tag | ConcertComponent): componentOrTag is ConcertComponent {
     return typeof componentOrTag === "function";
   }
 
-  function appendTextNode(
-    element: HTMLElement,
-    textNodeContent: string | number | boolean | object
-  ): Text {
+  function isTag(componentOrTag: Tag | ConcertComponent): componentOrTag is Tag {
+    return typeof componentOrTag === "string" && TAG_NAMES.has(componentOrTag);
+  }
+
+  function appendTextNode(element: HTMLElement, textNodeContent: Primitive): Text {
     const textNode = document.createTextNode(String(textNodeContent));
     element.appendChild(textNode);
     return textNode;
@@ -25,89 +57,115 @@ function context() {
   }
 
   function handleTagElementFunctionChild(element: HTMLElement, child: Function): void {
-    let childResult: JSX.Element = child();
-
-    let placeholderNodeMap: Map<number, Node> = new Map();
-    let placeholderNode!: Node;
-
-    if (Array.isArray(childResult)) {
-      for (let i = 0; i < childResult.length; i++) {
-        if (childResult[i] instanceof Node) {
-          placeholderNodeMap.set(i, childResult[i] as Node);
-        } else if (
-          typeof childResult[i] === "string" ||
-          typeof childResult[i] === "number" ||
-          typeof childResult[i] === "boolean"
-        ) {
-          placeholderNodeMap.set(i, document.createTextNode(String(childResult)));
-        }
-      }
-
-      for (const node of placeholderNodeMap.values()) {
-        element.appendChild(node);
-      }
-    } else {
-      if (childResult instanceof Node) {
-        placeholderNode = childResult;
-      } else if (
-        typeof childResult === "string" ||
-        typeof childResult === "number" ||
-        typeof childResult === "boolean"
-      ) {
-        placeholderNode = document.createTextNode(String(childResult));
-      }
-
-      element.appendChild(placeholderNode);
-    }
+    let keyCounter: number = 0;
+    let activeKeyNodeMap: Map<number, Node> = new Map();
+    let nodeToKeyMap: WeakMap<Node, number> = new WeakMap();
+    let activeNode: Node | undefined = undefined;
 
     const stopEffect = effect(() => {
-      childResult = child();
+      const childResult = child();
 
-      if (Array.isArray(childResult)) {
+      if (isArrayOfNodes(childResult)) {
+        const newOrderedKeys: number[] = [];
+        const newActiveKeyNodeMap: Map<number, Node> = new Map();
+
         childResult.forEach((nestedChild, i) => {
-          if (nestedChild instanceof Node) {
-            const newNode = nestedChild;
-            replaceChild(element, newNode, placeholderNodeMap.get(i)!);
-            placeholderNodeMap.set(i, newNode);
-          } else if (
-            typeof nestedChild === "string" ||
-            typeof nestedChild === "number" ||
-            typeof nestedChild === "boolean"
-          ) {
-            const newNode = document.createTextNode(String(nestedChild));
-            replaceChild(element, newNode, placeholderNodeMap.get(i)!);
-            placeholderNodeMap.set(i, newNode);
+          let nodeKey: number;
+          let node: Node;
+
+          if (isNode(nestedChild)) {
+            if (nodeToKeyMap.has(nestedChild)) {
+              nodeKey = nodeToKeyMap.get(nestedChild)!;
+            } else {
+              nodeKey = keyCounter++;
+              nodeToKeyMap.set(nestedChild, nodeKey);
+            }
+            node = nestedChild;
           } else {
-            console.warn("Unhandled child type:", child);
+            console.warn("Child of array must be a valid Node. Invalid child:", nestedChild);
+            return;
+          }
+
+          newOrderedKeys.push(nodeKey);
+
+          if (activeKeyNodeMap.has(nodeKey)) {
+            const existingNode = activeKeyNodeMap.get(nodeKey)!;
+
+            if (existingNode !== node) {
+              replaceChild(element, node, existingNode);
+            }
+
+            newActiveKeyNodeMap.set(nodeKey, node);
+          } else {
+            element.appendChild(node);
+            newActiveKeyNodeMap.set(nodeKey, node);
+
+            if (node instanceof HTMLElement) {
+              node.setAttribute("concert-key", nodeKey.toString());
+            }
+          }
+
+          if (isNode(node)) {
+            nodeToKeyMap.set(node, nodeKey);
           }
         });
+
+        activeKeyNodeMap.forEach((node, key) => {
+          if (!newActiveKeyNodeMap.has(key)) {
+            console.debug("Removing node with key:", key);
+            element.removeChild(node);
+            if (node instanceof HTMLElement) {
+              node.removeAttribute("concert-key");
+            }
+            if (isNode(node)) {
+              nodeToKeyMap.delete(node);
+            }
+          }
+        });
+
+        newOrderedKeys.forEach((key, index) => {
+          const node = newActiveKeyNodeMap.get(key)!;
+          const currentNode = element.childNodes[index];
+          if (currentNode !== node) {
+            element.insertBefore(node, currentNode);
+          }
+        });
+
+        activeKeyNodeMap = newActiveKeyNodeMap;
       } else {
-        if (childResult instanceof Node) {
-          const newNode = childResult;
-          replaceChild(element, newNode, placeholderNode);
-          placeholderNode = newNode;
-        } else if (
-          typeof childResult === "string" ||
-          typeof childResult === "number" ||
-          typeof childResult === "boolean"
-        ) {
-          const newNode = document.createTextNode(String(childResult));
-          replaceChild(element, newNode, placeholderNode);
-          placeholderNode = newNode;
+        if (isNode(childResult)) {
+          const nextNode = childResult;
+          if (nextNode !== activeNode) {
+            replaceChild(element, nextNode, activeNode);
+            activeNode = nextNode;
+          }
+        } else if (isPrimitive(childResult)) {
+          const nextNode = document.createTextNode(String(childResult));
+          if (nextNode !== activeNode) {
+            replaceChild(element, nextNode, activeNode);
+            activeNode = nextNode;
+          }
         } else {
-          console.warn("Unhandled child type:", child);
+          console.warn("Child must be primitive or node. Child is not primitive or node: ", child);
         }
       }
 
       return (): void => {
-        if (placeholderNode) {
-          console.debug("cleanup: handleTagElementFunctionChild: ", placeholderNode);
-          element.removeChild(placeholderNode);
-        } else if (placeholderNodeMap.size) {
-          placeholderNodeMap.forEach((node, i) => {
-            console.debug("array-cleanup: handleTagElementFunctionChild: ", node);
+        if (activeNode) {
+          console.debug("cleanup: handleTagElementFunctionChild: ", activeNode);
+          element.removeChild(activeNode);
+        } else if (activeKeyNodeMap.size) {
+          activeKeyNodeMap.forEach((node, key) => {
+            console.debug("cleanup: handleTagElementFunctionChild: Removing node with key:", key);
             element.removeChild(node);
+            if (node instanceof HTMLElement) {
+              node.removeAttribute("concert-key");
+            }
+            if (isNode(node)) {
+              nodeToKeyMap.delete(node);
+            }
           });
+          activeKeyNodeMap.clear();
         }
       };
     });
@@ -119,17 +177,13 @@ function context() {
   }
 
   function handleTagElementChild(element: HTMLElement, child: JSX.Element): void {
-    if (child instanceof Node) {
+    if (isNode(child)) {
       appendNode(element, child);
-    } else if (typeof child === "function") {
+    } else if (isFunction(child)) {
       handleTagElementFunctionChild(element, child);
-    } else if (Array.isArray(child)) {
+    } else if (isArrayOfNodes(child)) {
       child.forEach(nestedChild => handleTagElementChild(element, nestedChild));
-    } else if (
-      typeof child === "string" ||
-      typeof child === "number" ||
-      typeof child === "boolean"
-    ) {
+    } else if (isPrimitive(child)) {
       appendTextNode(element, child);
     } else {
       console.warn("Unhandled child type:", child);
@@ -150,7 +204,7 @@ function context() {
     const stopEffect = effect(() => {
       const pulledValue = value();
 
-      if (pulledValue == null) {
+      if (!pulledValue) {
         element.removeAttribute(key);
       } else {
         element.setAttribute(key, pulledValue);
@@ -178,7 +232,7 @@ function context() {
     for (const [key, value] of Object.entries(initialAttributes)) {
       if (key in EVENTS) {
         attachEventHandler(element, key, value as unknown as EventListener);
-      } else if (typeof value === "function") {
+      } else if (isFunction(value)) {
         attachEffect(element, key, value);
       } else {
         attachAttribute(element, key, value as string);
@@ -193,7 +247,7 @@ function context() {
   ): HTMLElement {
     initialProps["children"] = initialChildren ?? [];
 
-    const componentRenderFn = "render" in component ? component.render : component;
+    const componentRenderFn = getRenderFn(component);
 
     try {
       const renderContext = new RenderContext();
@@ -219,7 +273,7 @@ function context() {
   }
 
   function createTagElement(
-    tagName: string,
+    tagName: Tag,
     initialAttributes: Record<string, any>,
     initialChildren: JSX.Element[]
   ): HTMLElement {
@@ -230,21 +284,19 @@ function context() {
   }
 
   function h(
-    componentOrTag: string | ConcertComponent,
+    componentOrTag: Tag | ConcertComponent,
     initialProps: Record<string, any>,
     ...initialChildren: JSX.Element[]
-  ): HTMLElement {
+  ): HTMLElement | void {
     if (!initialProps) initialProps = {};
     if (!initialChildren) initialChildren = [];
 
     if (isComponent(componentOrTag)) {
-      return createComponentElement(
-        componentOrTag as ConcertComponent,
-        initialProps,
-        initialChildren
-      );
-    } else {
-      return createTagElement(componentOrTag as string, initialProps, initialChildren);
+      return createComponentElement(componentOrTag, initialProps, initialChildren);
+    }
+
+    if (isTag(componentOrTag)) {
+      return createTagElement(componentOrTag, initialProps, initialChildren);
     }
   }
 
