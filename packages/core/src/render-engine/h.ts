@@ -65,6 +65,7 @@ function context() {
     const stopEffect = effect(() => {
       const childResult = child();
 
+      // TODO: Fix permanence of nodes when lists are mutated
       if (isArrayOfNodes(childResult)) {
         const newOrderedKeys: number[] = [];
         const newActiveKeyNodeMap: Map<number, Node> = new Map();
@@ -78,6 +79,9 @@ function context() {
               nodeKey = nodeToKeyMap.get(nestedChild)!;
             } else {
               nodeKey = keyCounter++;
+              if (nestedChild instanceof HTMLElement) {
+                nestedChild.setAttribute("data-key", String(nodeKey));
+              }
               nodeToKeyMap.set(nestedChild, nodeKey);
             }
             node = nestedChild;
@@ -99,10 +103,6 @@ function context() {
           } else {
             element.appendChild(node);
             newActiveKeyNodeMap.set(nodeKey, node);
-
-            if (node instanceof HTMLElement) {
-              node.setAttribute("concert-key", nodeKey.toString());
-            }
           }
 
           if (isNode(node)) {
@@ -111,15 +111,13 @@ function context() {
         });
 
         activeKeyNodeMap.forEach((node, key) => {
-          if (!newActiveKeyNodeMap.has(key)) {
-            console.debug("Removing node with key:", key);
-            element.removeChild(node);
-            if (node instanceof HTMLElement) {
-              node.removeAttribute("concert-key");
-            }
-            if (isNode(node)) {
-              nodeToKeyMap.delete(node);
-            }
+          if (newActiveKeyNodeMap.has(key)) return;
+          element.removeChild(node);
+          if (node instanceof HTMLElement) {
+            node.removeAttribute("data-key");
+          }
+          if (isNode(node)) {
+            nodeToKeyMap.delete(node);
           }
         });
 
@@ -156,10 +154,9 @@ function context() {
           element.removeChild(activeNode);
         } else if (activeKeyNodeMap.size) {
           activeKeyNodeMap.forEach((node, key) => {
-            console.debug("cleanup: handleTagElementFunctionChild: Removing node with key:", key);
             element.removeChild(node);
             if (node instanceof HTMLElement) {
-              node.removeAttribute("concert-key");
+              node.removeAttribute("data-key");
             }
             if (isNode(node)) {
               nodeToKeyMap.delete(node);
@@ -230,7 +227,13 @@ function context() {
     initialAttributes: Record<string, any>
   ): void {
     for (const [key, value] of Object.entries(initialAttributes)) {
-      if (key in EVENTS) {
+      if (key === "ref") {
+        if (typeof value === "function") {
+          value(element);
+        } else {
+          console.error('Warning: "ref" must be a function. Received:', typeof value);
+        }
+      } else if (key in EVENTS) {
         attachEventHandler(element, key, value as unknown as EventListener);
       } else if (isFunction(value)) {
         attachEffect(element, key, value);

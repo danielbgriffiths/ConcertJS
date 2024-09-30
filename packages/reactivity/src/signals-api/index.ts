@@ -64,7 +64,7 @@ export function signal<T>(initialValue: T): ConcertSignal<T> {
   return [get, set];
 }
 
-// TODO: Fix initial run
+// TODO: Investigate fixing initial run of effect so that user can decide if they want it executed on first render
 export function effect(effectFn: ConcertEffectFn): ConcertCancelEffectFn {
   let firstRun = true;
   let onCleanup!: (() => void) | void | Promise<void> | Promise<() => void>;
