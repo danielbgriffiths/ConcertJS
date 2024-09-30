@@ -245,7 +245,7 @@ function transformElementToExpression(node) {
     }
 
     if (t.isJSXExpressionContainer(child)) {
-      nodeChildren.push(child.expression);
+      nodeChildren.push(wrapReactiveExpression(child.expression));
       continue;
     }
 
@@ -301,6 +301,25 @@ module.exports = declare(api => {
           const element = transformElementToExpression(path.node);
           path.replaceWith(element);
         }
+      },
+      JSXFragment(path) {
+        const { children } = path.node;
+
+        const transformedChildren = children
+          .map(child => {
+            if (t.isJSXText(child) && /^\s*$/.test(child.value)) {
+              return null;
+            }
+            if (t.isJSXExpressionContainer(child)) {
+              return wrapReactiveExpression(child.expression);
+            }
+            return child;
+          })
+          .filter(child => child !== null);
+
+        const arrayExpression = t.arrayExpression(transformedChildren);
+
+        path.replaceWith(arrayExpression);
       }
     }
   };
