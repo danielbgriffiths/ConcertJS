@@ -33,8 +33,7 @@ export class Counter {
             setCount(count() + 1);
           }}
         />
-        {count() === 1 ? <p>Count is 1</p> : <p>Count is not 1</p>}
-        <div switch={count()} class="switch-element">
+        <template switch={count()} class="switch-element">
           <p case={0} class="case-two">
             Count Is Initial
           </p>
@@ -47,7 +46,11 @@ export class Counter {
           <p case class="default-case">
             Count is Not At a landmark value
           </p>
-        </div>
+        </template>
+        {count() % 2 === 0 ? <p>Is Even In Ternary</p> : <p>Is Odd In Ternary</p>}
+        <p if={count() % 2 === 0}>Is Even Inline</p>
+        <p else-if={count() % 3 === 0}>Is Divisible By Three Inline</p>
+        <p else>Is Not Inline</p>
       </div>
     );
   }

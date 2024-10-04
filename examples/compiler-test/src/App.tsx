@@ -1,16 +1,10 @@
 export function App() {
-  function is() {
-    return false;
-  }
+  const isAThing = true;
 
   return (
-    <div>
-      <div>{is() ? <span>Is</span> : <span>Not</span>}</div>
-      <div>
-        {["item", "test"].map(el => (
-          <span>{el}</span>
-        ))}
-      </div>
-    </div>
+    <>
+      <div if={isAThing}>Inline If</div>
+      <div else>Not</div>
+    </>
   );
 }

@@ -1,7 +1,15 @@
-import { ConcertLog, signal } from "@concertjs/core";
+import {
+  ConcertLog,
+  ConcertSignalGetter,
+  effect,
+  onCleanup,
+  onMount,
+  signal
+} from "@concertjs/core";
 
 interface Props {
   item: string;
+  randomNumber: ConcertSignalGetter;
   onDelete: (item: string) => void;
   onUpdate: (oldItem: string, newItem: string) => void;
 }
@@ -27,12 +35,26 @@ export class ListItem {
       setIsEditing(false);
     }
 
+    effect(() => {
+      console.log("props.item: ", props.item);
+    });
+
+    onMount(() => {
+      console.log(`ListItem ${props.item} Mounted`);
+    });
+
+    onCleanup(() => {
+      console.log(`ListItem ${props.item} Cleanup`);
+    });
+
     return (
       <li class="todo-item">
         {isEditing() ? (
           <input ref={ref => (inputRef = ref)} defaultValue={props.item} />
         ) : (
-          props.item
+          <span>
+            {props.item} - {props.randomNumber()}
+          </span>
         )}
         <span onClick={() => props.onDelete(props.item)}>X</span>
         {isEditing() ? (

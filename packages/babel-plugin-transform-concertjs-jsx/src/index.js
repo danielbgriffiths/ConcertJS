@@ -141,6 +141,10 @@ function createSwitchElement(switchAttr, cases) {
 }
 
 function createHElement(tagName, props, nodeChildren) {
+  if (tagName === "template") {
+    return [...nodeChildren];
+  }
+
   const isComponent = /^[A-Z]/.test(tagName);
 
   const tagExpression = isComponent ? t.identifier(tagName) : t.stringLiteral(tagName);
@@ -158,45 +162,40 @@ function createHandleAsyncElement(element, pendingAttr, rejectedAttr) {
 
 function processIfElseChain(path) {
   const elements = [];
-  let nextSibling = path.getSibling(path.key + 1);
+  const siblingPathsToRemove = [];
 
-  const { ifAttr, elseIfAttr, elseAttr } = extractAttributes(path.node.openingElement.attributes);
+  let currentPath = path;
+  let limit = 10;
 
-  if (ifAttr || elseIfAttr || elseAttr) {
-    elements.push({ node: path.node, ifAttr, elseIfAttr, elseAttr });
+  while (currentPath && currentPath.isJSXElement() && limit > 0) {
+    const { ifAttr, elseIfAttr, elseAttr } = extractAttributes(
+      currentPath.node.openingElement.attributes
+    );
 
-    path.node.openingElement.attributes = path.node.openingElement.attributes.filter(attr => {
-      const attrName = attr.name.name;
-      return attrName !== "if" && attrName !== "else-if" && attrName !== "else";
-    });
+    if (ifAttr || elseIfAttr || elseAttr) {
+      elements.push({
+        node: currentPath.node,
+        ifAttr,
+        elseIfAttr,
+        elseAttr
+      });
 
-    let limit = 10;
+      siblingPathsToRemove.push(currentPath);
 
-    while (nextSibling && nextSibling.isJSXElement() && limit > 0) {
-      const siblingAttributes = extractAttributes(nextSibling.node.openingElement.attributes);
-
-      if (siblingAttributes.elseIfAttr || siblingAttributes.elseAttr) {
-        elements.push({
-          node: nextSibling.node,
-          ifAttr: siblingAttributes.elseIfAttr,
-          elseAttr: siblingAttributes.elseAttr
+      currentPath.node.openingElement.attributes =
+        currentPath.node.openingElement.attributes.filter(attr => {
+          const attrName = attr.name.name;
+          return attrName !== "if" && attrName !== "else-if" && attrName !== "else";
         });
 
-        nextSibling.node.openingElement.attributes =
-          nextSibling.node.openingElement.attributes.filter(attr => {
-            const attrName = attr.name.name;
-            return attrName !== "else-if" && attrName !== "else";
-          });
-
-        nextSibling = nextSibling.getSibling(nextSibling.key + 1);
-        limit--;
-      } else {
-        break;
-      }
+      currentPath = currentPath.getSibling(currentPath.key + 1);
+      limit--;
+    } else {
+      break;
     }
   }
 
-  return elements;
+  return { elements, siblingPathsToRemove };
 }
 
 function buildTernaryChain(elements) {
@@ -282,6 +281,8 @@ function transformElementToExpression(node) {
     element = createHElement(tagName, props, nodeChildren);
   }
 
+  console.log("element: ", element);
+
   return element;
 }
 
@@ -292,30 +293,49 @@ module.exports = declare(api => {
     name: "transform-concertjs-jsx",
     visitor: {
       JSXElement(path) {
-        const ifElseChain = processIfElseChain(path);
+        if (!path.node) {
+          return;
+        }
 
-        if (ifElseChain.length > 0) {
-          const ternaryExpression = buildTernaryChain(ifElseChain);
-          path.replaceWith(ternaryExpression);
+        const { elements, siblingPathsToRemove } = processIfElseChain(path);
+
+        if (elements.length > 0) {
+          const ternaryExpression = buildTernaryChain(elements);
+          path.replaceWith(wrapReactiveExpression(ternaryExpression));
+
+          siblingPathsToRemove.forEach(siblingPath => {
+            if (siblingPath === path) return;
+            siblingPath.remove();
+          });
         } else {
           const element = transformElementToExpression(path.node);
-          path.replaceWith(element);
+
+          if (Array.isArray(element)) {
+            path.replaceWithMultiple(element);
+          } else {
+            path.replaceWith(element);
+          }
         }
       },
       JSXFragment(path) {
         const { children } = path.node;
 
-        const transformedChildren = children
-          .map(child => {
-            if (t.isJSXText(child) && /^\s*$/.test(child.value)) {
-              return null;
-            }
-            if (t.isJSXExpressionContainer(child)) {
-              return wrapReactiveExpression(child.expression);
-            }
-            return child;
-          })
-          .filter(child => child !== null);
+        const transformedChildren = [];
+
+        for (const child of children) {
+          if (t.isJSXText(child) && /^\s*$/.test(child.value)) {
+            continue;
+          }
+
+          if (t.isJSXExpressionContainer(child)) {
+            transformedChildren.push(wrapReactiveExpression(child.expression));
+            continue;
+          }
+
+          if (t.isJSXElement(child)) {
+            transformedChildren.push(child);
+          }
+        }
 
         const arrayExpression = t.arrayExpression(transformedChildren);
 

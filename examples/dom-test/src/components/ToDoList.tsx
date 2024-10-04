@@ -8,6 +8,7 @@ export class ToDoList {
     let inputRef!: HTMLInputElement | null;
 
     const [listItems, setListItems] = signal(["Item 1", "Item 2", "Item 3"]);
+    const [randomNumber, setRandomNumber] = signal(Math.random());
 
     const [todoInput, setTodoInput] = signal("");
 
@@ -24,6 +25,10 @@ export class ToDoList {
     effect(() => {
       console.info("listItems", listItems());
     });
+
+    setInterval(() => {
+      setRandomNumber(Math.random());
+    }, 2000);
 
     function onChange(event: any): void {
       setTodoInput((event.target as any).value);
@@ -60,7 +65,12 @@ export class ToDoList {
         <h1 class="todo-list-header">TO DO List</h1>
         <ul class="todo-list">
           {listItems().map(item => (
-            <ListItem item={item} onDelete={deleteItem} onUpdate={updateItem} />
+            <ListItem
+              item={item}
+              randomNumber={randomNumber()}
+              onDelete={deleteItem}
+              onUpdate={updateItem}
+            />
           ))}
         </ul>
         <div>
