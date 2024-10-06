@@ -1,12 +1,17 @@
-import { Directive } from "@concertjs/core";
+import { signal } from "@concertjs/core";
 
-function LogDirective(element, props) {
-  console.log("element, props: ", element, props);
+function Item(props: { item: string }) {
+  return <li>{props.item}</li>;
 }
 
-@Directive([["log", LogDirective]])
-export class App {
-  static render() {
-    return <div use-log={{ content: "test" }}>Test</div>;
-  }
+export function App() {
+  const [items] = signal(["1", "2", "3"]);
+
+  return (
+    <ul>
+      {items().map((item, idx) => (
+        <Item key={idx} item={item} />
+      ))}
+    </ul>
+  );
 }

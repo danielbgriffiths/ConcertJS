@@ -1,0 +1,20 @@
+{
+  "name": "vite-manual-test",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vite",
+    "prod": "vite build"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@concertjs/core": "workspace:*"
+  },
+  "devDependencies": {
+    "vite": "^5.4.8",
+    "@concertjs/vite-plugin-concertjs": "workspace:*"
+  }
+}
