@@ -56,35 +56,58 @@ function context() {
     element.appendChild(child);
   }
 
+  function hashString(str: string): number {
+    let hash = 0;
+    if (str.length === 0) return hash;
+    for (let i = 0; i < str.length; i++) {
+      const char = str.charCodeAt(i);
+      hash = (hash << 5) - hash + char;
+      hash |= 0;
+    }
+    return hash;
+  }
+
+  function getNodeHashContent(node: Node): string {
+    if (node.nodeType === Node.TEXT_NODE) {
+      return node.textContent || "";
+    } else if (node.nodeType === Node.ELEMENT_NODE) {
+      const element = node as HTMLElement;
+      let content = element.tagName;
+      for (const attr of Array.from(element.attributes)) {
+        content += `${attr.name}=${attr.value};`;
+      }
+      content += element.textContent || "";
+      return content;
+    }
+    return "";
+  }
+
   function handleTagElementFunctionChild(element: HTMLElement, child: Function): void {
-    let keyCounter: number = 0;
     let activeKeyNodeMap: Map<number, Node> = new Map();
-    let nodeToKeyMap: WeakMap<Node, number> = new WeakMap();
+    let nodeCache: Map<number, Node> = new Map();
     let activeNode: Node | undefined = undefined;
 
     const stopEffect = effect(() => {
       const childResult = child();
 
-      // TODO: Fix permanence of nodes when lists are mutated
-      if (isArrayOfNodes(childResult)) {
+      if (Array.isArray(childResult)) {
         const newOrderedKeys: number[] = [];
         const newActiveKeyNodeMap: Map<number, Node> = new Map();
 
-        childResult.forEach((nestedChild, i) => {
+        childResult.forEach(nestedChild => {
           let nodeKey: number;
           let node: Node;
 
           if (isNode(nestedChild)) {
-            if (nodeToKeyMap.has(nestedChild)) {
-              nodeKey = nodeToKeyMap.get(nestedChild)!;
+            const hashContent = getNodeHashContent(nestedChild);
+            nodeKey = hashString(hashContent);
+
+            if (nodeCache.has(nodeKey)) {
+              node = nodeCache.get(nodeKey)!;
             } else {
-              nodeKey = keyCounter++;
-              if (nestedChild instanceof HTMLElement) {
-                nestedChild.setAttribute("data-key", String(nodeKey));
-              }
-              nodeToKeyMap.set(nestedChild, nodeKey);
+              node = nestedChild;
+              nodeCache.set(nodeKey, node);
             }
-            node = nestedChild;
           } else {
             console.warn("Child of array must be a valid Node. Invalid child:", nestedChild);
             return;
@@ -96,6 +119,7 @@ function context() {
             const existingNode = activeKeyNodeMap.get(nodeKey)!;
 
             if (existingNode !== node) {
+              console.log("1. replacing child");
               replaceChild(element, node, existingNode);
             }
 
@@ -104,23 +128,17 @@ function context() {
             element.appendChild(node);
             newActiveKeyNodeMap.set(nodeKey, node);
           }
-
-          if (isNode(node)) {
-            nodeToKeyMap.set(node, nodeKey);
-          }
         });
 
+        // Remove nodes that are no longer present
         activeKeyNodeMap.forEach((node, key) => {
           if (newActiveKeyNodeMap.has(key)) return;
+          console.log("2. removing child");
           element.removeChild(node);
-          if (node instanceof HTMLElement) {
-            node.removeAttribute("data-key");
-          }
-          if (isNode(node)) {
-            nodeToKeyMap.delete(node);
-          }
+          nodeCache.delete(key);
         });
 
+        // Reorder nodes to match the new order
         newOrderedKeys.forEach((key, index) => {
           const node = newActiveKeyNodeMap.get(key)!;
           const currentNode = element.childNodes[index];
@@ -134,12 +152,14 @@ function context() {
         if (isNode(childResult)) {
           const nextNode = childResult;
           if (nextNode !== activeNode) {
+            console.log("3. replacing child");
             replaceChild(element, nextNode, activeNode);
             activeNode = nextNode;
           }
         } else if (isPrimitive(childResult)) {
           const nextNode = document.createTextNode(String(childResult));
           if (nextNode !== activeNode) {
+            console.log("4. replacing child");
             replaceChild(element, nextNode, activeNode);
             activeNode = nextNode;
           }
@@ -151,18 +171,12 @@ function context() {
       return (): void => {
         if (activeNode) {
           console.debug("cleanup: handleTagElementFunctionChild: ", activeNode);
+          console.log("5. replacing child");
           element.removeChild(activeNode);
         } else if (activeKeyNodeMap.size) {
-          activeKeyNodeMap.forEach((node, key) => {
-            element.removeChild(node);
-            if (node instanceof HTMLElement) {
-              node.removeAttribute("data-key");
-            }
-            if (isNode(node)) {
-              nodeToKeyMap.delete(node);
-            }
-          });
+          element.innerHTML = "";
           activeKeyNodeMap.clear();
+          nodeCache.clear();
         }
       };
     });

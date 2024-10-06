@@ -64,8 +64,9 @@ export class ToDoList {
       <div class="todo-list-wrapper">
         <h1 class="todo-list-header">TO DO List</h1>
         <ul class="todo-list">
-          {listItems().map(item => (
+          {listItems().map((item, idx) => (
             <ListItem
+              key={idx}
               item={item}
               randomNumber={randomNumber()}
               onDelete={deleteItem}

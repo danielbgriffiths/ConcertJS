@@ -8,6 +8,7 @@ import {
 } from "@concertjs/core";
 
 interface Props {
+  key: number;
   item: string;
   randomNumber: ConcertSignalGetter;
   onDelete: (item: string) => void;
@@ -48,7 +49,7 @@ export class ListItem {
     });
 
     return (
-      <li class="todo-item">
+      <li key={props.key} class="todo-item">
         {isEditing() ? (
           <input ref={ref => (inputRef = ref)} defaultValue={props.item} />
         ) : (

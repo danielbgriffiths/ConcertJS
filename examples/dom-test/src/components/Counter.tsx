@@ -33,6 +33,7 @@ export class Counter {
             setCount(count() + 1);
           }}
         />
+
         <template switch={count()} class="switch-element">
           <p case={0} class="case-two">
             Count Is Initial
@@ -47,7 +48,9 @@ export class Counter {
             Count is Not At a landmark value
           </p>
         </template>
+
         {count() % 2 === 0 ? <p>Is Even In Ternary</p> : <p>Is Odd In Ternary</p>}
+
         <p if={count() % 2 === 0}>Is Even Inline</p>
         <p else-if={count() % 3 === 0}>Is Divisible By Three Inline</p>
         <p else>Is Not Inline</p>

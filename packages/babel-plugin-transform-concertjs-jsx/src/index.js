@@ -17,11 +17,19 @@ function extractAttributes(attributes) {
   let mapAttr = null;
   let forAttr = null;
   let ofAttr = null;
-  let propsAttrs = [];
+  const useAttrs = [];
+  const propsAttrs = [];
 
   for (let i = 0; i < attributes.length; i++) {
     const attr = attributes[i];
     const attrName = attr.name.name;
+    if (attrName.includes("use-")) {
+      const directiveName = attr.name.name.slice(4);
+      const directiveValue = extractAttributeValue(attr);
+      useAttrs.push({ name: directiveName, value: directiveValue });
+      continue;
+    }
+
     switch (attrName) {
       case "if":
         ifAttr = extractAttributeValue(attr);
@@ -67,6 +75,7 @@ function extractAttributes(attributes) {
     mapAttr,
     forAttr,
     ofAttr,
+    useAttrs,
     propsAttrs
   };
 }
@@ -152,6 +161,20 @@ function createHElement(tagName, props, nodeChildren) {
   return t.callExpression(t.identifier("h"), [tagExpression, props, ...nodeChildren]);
 }
 
+function wrapApplyDirectives(element, directives) {
+  return t.callExpression(t.identifier("applyDirectives"), [
+    element,
+    t.arrayExpression(
+      directives.map(directive =>
+        t.objectExpression([
+          t.objectProperty(t.identifier("name"), t.stringLiteral(directive.name)),
+          t.objectProperty(t.identifier("value"), directive.value)
+        ])
+      )
+    )
+  ]);
+}
+
 function createHandleAsyncElement(element, pendingAttr, rejectedAttr) {
   return t.callExpression(t.identifier("handleAsync"), [
     element,
@@ -223,7 +246,7 @@ function transformElementToExpression(node) {
   const openingElement = node.openingElement;
   const tagName = openingElement.name.name;
 
-  const { propsAttrs, switchAttr, mapAttr, pendingAttr, rejectedAttr, forAttr, ofAttr } =
+  const { propsAttrs, switchAttr, mapAttr, pendingAttr, rejectedAttr, forAttr, ofAttr, useAttrs } =
     extractAttributes(openingElement.attributes);
 
   openingElement.attributes = propsAttrs;
@@ -281,7 +304,9 @@ function transformElementToExpression(node) {
     element = createHElement(tagName, props, nodeChildren);
   }
 
-  console.log("element: ", element);
+  if (!!useAttrs.length) {
+    return wrapApplyDirectives(element, useAttrs);
+  }
 
   return element;
 }

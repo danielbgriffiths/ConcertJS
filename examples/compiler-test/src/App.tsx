@@ -1,10 +1,12 @@
-export function App() {
-  const isAThing = true;
+import { Directive } from "@concertjs/core";
 
-  return (
-    <>
-      <div if={isAThing}>Inline If</div>
-      <div else>Not</div>
-    </>
-  );
+function LogDirective(element, props) {
+  console.log("element, props: ", element, props);
+}
+
+@Directive([["log", LogDirective]])
+export class App {
+  static render() {
+    return <div use-log={{ content: "test" }}>Test</div>;
+  }
 }

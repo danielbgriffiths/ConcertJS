@@ -1,10 +1,12 @@
-import { ConcertLog, effect, onCleanup, onMount, Route } from "@concertjs/core";
+import { ConcertLog, onCleanup, onMount, Route, Directive } from "@concertjs/core";
 
 import { Counter } from "../components/Counter";
 import { ToDoList } from "../components/ToDoList";
 import { useClock } from "../hooks/clock";
+import { TooltipDirective } from "../directives/tooltip";
 
 @Route("/")
+@Directive([["tooltip", TooltipDirective]])
 @ConcertLog
 export class Home {
   static render() {
@@ -21,7 +23,7 @@ export class Home {
     return (
       <div class="home-wrapper">
         <div>
-          <h1>Home Page</h1>
+          <h1 use-tooltip={{ content: "Some Tooltip Text" }}>Home Page</h1>
           <div>
             <p>{clock.time()}</p>
           </div>
