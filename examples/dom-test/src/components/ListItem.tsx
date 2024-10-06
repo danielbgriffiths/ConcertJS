@@ -2,6 +2,7 @@ import {
   ConcertLog,
   ConcertSignalGetter,
   effect,
+  MeasurePerformance,
   onCleanup,
   onMount,
   signal
@@ -17,6 +18,7 @@ interface Props {
 
 @ConcertLog
 export class ListItem {
+  @MeasurePerformance({ name: "ListItem" })
   static render(props: Props) {
     let inputRef!: HTMLInputElement | undefined;
 

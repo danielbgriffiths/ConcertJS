@@ -1,9 +1,17 @@
-import { ConcertLog, effect, onCleanup, onMount, signal } from "@concertjs/core";
+import {
+  ConcertLog,
+  effect,
+  MeasurePerformance,
+  onCleanup,
+  onMount,
+  signal
+} from "@concertjs/core";
 
 import { ListItem } from "./ListItem";
 
 @ConcertLog
 export class ToDoList {
+  @MeasurePerformance({ name: "ToDoList" })
   static render() {
     let inputRef!: HTMLInputElement | null;
 

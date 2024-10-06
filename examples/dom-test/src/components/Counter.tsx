@@ -1,10 +1,19 @@
-import { ConcertLog, effect, memo, onCleanup, onMount, signal } from "@concertjs/core";
+import {
+  ConcertLog,
+  effect,
+  MeasurePerformance,
+  memo,
+  onCleanup,
+  onMount,
+  signal
+} from "@concertjs/core";
 
 import { CountDisplay } from "./CountDisplay";
 import { CountButton } from "./CountButton";
 
 @ConcertLog
 export class Counter {
+  @MeasurePerformance({ name: "Counter" })
   static render() {
     const [count, setCount] = signal(0);
     const double = memo(() => count() * 2);

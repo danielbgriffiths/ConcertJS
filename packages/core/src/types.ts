@@ -22,3 +22,15 @@ export type ConcertComponent<P = any> = ConcertStructuralComponent | ConcertFunc
 export type ConcertPropsWithChildren = {
   children: JSX.Element | JSX.Element[];
 };
+
+export type _ElementDescriptor = {
+  descriptor: PropertyDescriptor;
+  key: string;
+  kind: "class" | "method" | "field";
+  placement: "static" | "prototype";
+};
+
+export interface MeasurePerformanceOptions {
+  isEnabled?: boolean;
+  name: string;
+}

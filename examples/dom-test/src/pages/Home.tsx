@@ -1,4 +1,11 @@
-import { ConcertLog, onCleanup, onMount, Route, Directive } from "@concertjs/core";
+import {
+  ConcertLog,
+  onCleanup,
+  onMount,
+  Route,
+  Directive,
+  MeasurePerformance
+} from "@concertjs/core";
 
 import { Counter } from "../components/Counter";
 import { ToDoList } from "../components/ToDoList";
@@ -9,6 +16,7 @@ import { TooltipDirective } from "../directives/tooltip";
 @Directive([["tooltip", TooltipDirective]])
 @ConcertLog
 export class Home {
+  @MeasurePerformance({ name: "Home" })
   static render() {
     const clock = useClock();
 
