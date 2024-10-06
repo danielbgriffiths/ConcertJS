@@ -6,14 +6,14 @@ export type ConcertSignal<T = any> = [ConcertSignalGetter<T>, ConcertSignalSette
 
 export type ConcertEffectCallbackReturn = void | (() => void);
 
-export type ConcertEffectFn = () => ConcertEffectCallbackReturn;
+export type ConcertEffectFn = (isInitialRun: boolean) => ConcertEffectCallbackReturn;
 
 export type ConcertCancelEffectFn = () => void;
 
-let activeEffect: null | (() => void) = null;
+let activeEffect: null | ConcertEffectFn = null;
 const effectStack: (() => void)[] = [];
-const subscribersList: Set<() => void>[] = [];
-const batchQueue = new Set<() => void>();
+const subscribersList: Set<ConcertEffectFn>[] = [];
+const batchQueue = new Set<ConcertEffectFn>();
 let isBatching = false;
 
 function cleanupEffect(effect: ConcertEffectFn): void {
@@ -25,7 +25,7 @@ function batchUpdate(effectFn: ConcertEffectFn): void {
     isBatching = true;
 
     Promise.resolve().then(() => {
-      batchQueue.forEach(effect => effect());
+      batchQueue.forEach(effect => effect(false));
       batchQueue.clear();
       isBatching = false;
     });
@@ -40,7 +40,7 @@ function getActiveEffect(): ConcertEffectFn | null {
 
 export function signal<T>(initialValue: T): ConcertSignal<T> {
   let value = initialValue;
-  const subscribers = new Set<() => void>();
+  const subscribers = new Set<ConcertEffectFn>();
 
   const get: ConcertSignalGetter<T> = () => {
     const currentActiveEffect = getActiveEffect();
@@ -64,7 +64,9 @@ export function signal<T>(initialValue: T): ConcertSignal<T> {
   return [get, set];
 }
 
+// TODO: Investigate fixing initial run of effect so that user can decide if they want it executed on first render
 export function effect(effectFn: ConcertEffectFn): ConcertCancelEffectFn {
+  let firstRun = true;
   let onCleanup!: (() => void) | void | Promise<void> | Promise<() => void>;
 
   const effect = (): void => {
@@ -72,7 +74,14 @@ export function effect(effectFn: ConcertEffectFn): ConcertCancelEffectFn {
     activeEffect = effect;
 
     effectStack.push(effect);
-    onCleanup = effectFn();
+
+    if (!firstRun) {
+      onCleanup = effectFn(false);
+    } else {
+      onCleanup = effectFn(true);
+      firstRun = false;
+    }
+
     effectStack.pop();
     activeEffect = effectStack[effectStack.length - 1] || null;
   };
@@ -91,7 +100,7 @@ export function effect(effectFn: ConcertEffectFn): ConcertCancelEffectFn {
 export function memo<T = any>(computedFn: () => T): ConcertSignalGetter<T> {
   let value: T;
   let isStale = true;
-  const subscribers = new Set<() => void>();
+  const subscribers = new Set<ConcertEffectFn>();
 
   const markStale = (): void => {
     isStale = true;

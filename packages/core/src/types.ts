@@ -18,3 +18,7 @@ export type ConcertFunctionalComponent<P = any> = (
 ) => JSX.Element;
 
 export type ConcertComponent<P = any> = ConcertStructuralComponent | ConcertFunctionalComponent<P>;
+
+export type ConcertPropsWithChildren = {
+  children: JSX.Element | JSX.Element[];
+};

@@ -14,7 +14,7 @@ export class App {
     });
 
     return (
-      <div autofocus class="app-wrapper">
+      <div class="app-wrapper">
         <Home />
       </div>
     );

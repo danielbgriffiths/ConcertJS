@@ -2,7 +2,7 @@ export { signal, memo, effect } from "@concertjs/reactivity";
 
 export { mount, h, onMount, onCleanup } from "./render-engine";
 export { Route, ConcertRouteSlot } from "./routing";
-export { ConcertLog } from "./decorators";
+export { ConcertLog, Directive, registerDirective, applyDirectives } from "./decorators";
 export type {
   ConcertSignalGetter,
   ConcertSignalSetter,

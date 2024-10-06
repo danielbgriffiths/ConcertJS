@@ -1,31 +1,12 @@
-function Link(props) {
-  return <a href={props.href}>{props.children}</a>;
+import { Directive } from "@concertjs/core";
+
+function LogDirective(element, props) {
+  console.log("element, props: ", element, props);
 }
 
-function NavItem(props) {
-  return (
-    <li>
-      <Link href={props.href}>{props.label}</Link>
-    </li>
-  );
-}
-
-function Navigation() {
-  return (
-    <nav>
-      <ul>
-        <NavItem href="/" label="Home" />
-        <NavItem href="/dashboard" label="Dashboard" />
-        <NavItem href="/login" label="Login" />
-      </ul>
-    </nav>
-  );
-}
-
-export function App() {
-  return (
-    <div>
-      <Navigation />
-    </div>
-  );
+@Directive([["log", LogDirective]])
+export class App {
+  static render() {
+    return <div use-log={{ content: "test" }}>Test</div>;
+  }
 }

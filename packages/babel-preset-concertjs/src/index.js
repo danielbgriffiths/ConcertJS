@@ -8,6 +8,7 @@ const transformConcertJSX = require("@concertjs/babel-plugin-transform-concertjs
 
 const collectConcertRoutes = require("./plugins/collect-concertjs-routes");
 const importConcertPragma = require("./plugins/import-concertjs-pragma");
+const registerConcertDirectives = require("./plugins/register-concertjs-directives");
 
 module.exports = function BabelPresetConcertJS(api, options = {}) {
   api.assertVersion(7);
@@ -19,6 +20,7 @@ module.exports = function BabelPresetConcertJS(api, options = {}) {
     ],
     plugins: [
       collectConcertRoutes,
+      registerConcertDirectives,
       [decorators, { decoratorsBeforeExport: true }],
       [transformClassProperties, { loose: false }],
       transformRuntime,
