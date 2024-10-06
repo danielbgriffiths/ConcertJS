@@ -207,6 +207,15 @@ importers:
         specifier: ^1.6.0
         version: 1.6.0(@babel/core@7.25.2)
 
+  packages/create-concert:
+    dependencies:
+      commander:
+        specifier: ^8.0.0
+        version: 8.3.0
+      degit:
+        specifier: ^2.8.0
+        version: 2.8.4
+
   packages/eslint-plugin-concertjs:
     dependencies:
       eslint:
@@ -274,6 +283,22 @@ importers:
       rimraf:
         specifier: ^3.x
         version: 3.0.2
+
+  templates/vite-typescript-todo:
+    dependencies:
+      '@concertjs/core':
+        specifier: workspace:*
+        version: link:../../packages/core
+    devDependencies:
+      '@concertjs/vite-plugin-concertjs':
+        specifier: workspace:*
+        version: link:../../packages/vite-plugin-concertjs
+      typescript:
+        specifier: ^5.5.3
+        version: 5.6.2
+      vite:
+        specifier: ^5.4.8
+        version: 5.4.8
 
 packages:
 
@@ -3228,6 +3253,11 @@ packages:
     engines: {node: '>= 10'}
     dev: true
 
+  /commander@8.3.0:
+    resolution: {integrity: sha512-OkTL9umf+He2DZkUq8f8J9of7yL6RJKI24dVITBmNfZBmri9zYZQrKkuXiKhyfPSu8tUhnVBB1iKXevvnlR4Ww==}
+    engines: {node: '>= 12'}
+    dev: false
+
   /common-path-prefix@3.0.0:
     resolution: {integrity: sha512-QE33hToZseCH3jS0qN96O/bSh3kaw/h+Tq7ngyY9eWDUnTlTNUyqfqvCXioLe5Na5jFsL78ra/wuBU4iuEgd4w==}
     dev: true
@@ -3389,6 +3419,12 @@ packages:
     resolution: {integrity: sha512-Ds09qNh8yw3khSjiJjiUInaGX9xlqZDY7JVryGxdxV7NPeuqQfplOpQ66yJFZut3jLa5zOwkXw1g9EI2uKh4Og==}
     engines: {node: '>=8'}
     dev: true
+
+  /degit@2.8.4:
+    resolution: {integrity: sha512-vqYuzmSA5I50J882jd+AbAhQtgK6bdKUJIex1JNfEUPENCgYsxugzKVZlFyMwV4i06MmnV47/Iqi5Io86zf3Ng==}
+    engines: {node: '>=8.0.0'}
+    hasBin: true
+    dev: false
 
   /delayed-stream@1.0.0:
     resolution: {integrity: sha512-ZySD7Nf91aLB0RxL4KGrKHBXl7Eds1DAmEdcoVawXnLD7SDhpNgtuII2aAkg7a7QS41jxPSZ17p4VdGnMHk3MQ==}
