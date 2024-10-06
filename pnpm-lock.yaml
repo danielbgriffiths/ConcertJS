@@ -107,6 +107,9 @@ importers:
       '@concertjs/vite-plugin-concertjs':
         specifier: workspace:*
         version: link:../../packages/vite-plugin-concertjs
+      typescript:
+        specifier: ^5.5.3
+        version: 5.6.2
       vite:
         specifier: ^5.4.8
         version: 5.4.8
@@ -251,43 +254,26 @@ importers:
         version: 1.6.0(@babel/core@7.25.2)
 
   packages/vite-plugin-concertjs:
+    dependencies:
+      eslint:
+        specifier: ^7.0.0 || ^8.0.0
+        version: 8.57.0
     devDependencies:
       '@babel/cli':
         specifier: ^7.x
         version: 7.25.6(@babel/core@7.25.2)
-      '@babel/core':
-        specifier: ^7.25.2
-        version: 7.25.2
-      '@babel/plugin-transform-class-properties':
-        specifier: ^7.25.4
-        version: 7.25.4(@babel/core@7.25.2)
-      '@babel/plugin-transform-runtime':
-        specifier: ^7.25.4
-        version: 7.25.4(@babel/core@7.25.2)
-      '@babel/preset-env':
-        specifier: ^7.21.0
-        version: 7.25.4(@babel/core@7.25.2)
-      '@babel/preset-typescript':
-        specifier: ^7.21.0
-        version: 7.24.7(@babel/core@7.25.2)
-      '@babel/runtime':
-        specifier: ^7.25.6
-        version: 7.25.6
       '@concertjs/babel-preset-concertjs':
         specifier: workspace:*
         version: link:../babel-preset-concertjs
       '@rollup/pluginutils':
         specifier: ^5.1.2
         version: 5.1.2
-      '@types/babel__core':
-        specifier: ^7.20.5
-        version: 7.20.5
-      '@types/node':
-        specifier: ^22.5.4
-        version: 22.5.5
-      babel-plugin-add-import-extension:
-        specifier: ^1.6.0
-        version: 1.6.0(@babel/core@7.25.2)
+      jest:
+        specifier: ^27.x
+        version: 27.5.1
+      rimraf:
+        specifier: ^3.x
+        version: 3.0.2
 
 packages:
 

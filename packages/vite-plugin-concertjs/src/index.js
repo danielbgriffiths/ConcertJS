@@ -1,16 +1,9 @@
-import { createFilter } from "@rollup/pluginutils";
-import * as babel from "@babel/core";
+const { createFilter } = require("@rollup/pluginutils");
+const babel = require("@babel/core");
 
-import concertjsBabelPreset from "@concertjs/babel-preset-concertjs";
+const concertjsBabelPreset = require("@concertjs/babel-preset-concertjs");
 
-export type ConcertVitePluginOptions = {
-  exclude?: string | string[];
-  include?: string | string[];
-  babelPresets?: Function[];
-  babelPlugins?: Function[];
-};
-
-export default function concertjsPlugin(options: ConcertVitePluginOptions = {}) {
+function concertjsPlugin(options = {}) {
   const filter = createFilter(
     options.include || ["**/*.{js,jsx,ts,tsx}"],
     options.exclude || "node_modules/**"
@@ -20,7 +13,7 @@ export default function concertjsPlugin(options: ConcertVitePluginOptions = {}) 
     name: "vite-plugin-concertjs",
     enforce: "pre",
 
-    async transform(code: string, id: string): Promise<unknown> {
+    async transform(code, id) {
       if (!filter(id)) return null;
 
       if (id.includes("node_modules")) return null;
@@ -43,3 +36,5 @@ export default function concertjsPlugin(options: ConcertVitePluginOptions = {}) 
     }
   };
 }
+
+module.exports = concertjsPlugin;

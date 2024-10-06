@@ -1,19 +1,18 @@
 {
-  "name": "vite-manual-test",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "name": "vite-project",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
   "scripts": {
     "dev": "vite",
-    "prod": "vite build"
+    "build": "tsc && vite build",
+    "preview": "vite preview"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "dependencies": {
     "@concertjs/core": "workspace:*"
   },
   "devDependencies": {
+    "typescript": "^5.5.3",
     "vite": "^5.4.8",
     "@concertjs/vite-plugin-concertjs": "workspace:*"
   }
