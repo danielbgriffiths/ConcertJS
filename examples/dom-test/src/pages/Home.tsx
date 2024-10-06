@@ -4,7 +4,8 @@ import {
   onMount,
   Route,
   Directive,
-  MeasurePerformance
+  MeasurePerformance,
+  Head
 } from "@concertjs/core";
 
 import { Counter } from "../components/Counter";
@@ -12,6 +13,7 @@ import { ToDoList } from "../components/ToDoList";
 import { useClock } from "../hooks/clock";
 import { TooltipDirective } from "../directives/tooltip";
 
+@Head({ title: "Home Page" })
 @Route("/")
 @Directive([["tooltip", TooltipDirective]])
 @ConcertLog

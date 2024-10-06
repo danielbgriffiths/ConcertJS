@@ -34,3 +34,30 @@ export interface MeasurePerformanceOptions {
   isEnabled?: boolean;
   name: string;
 }
+
+export interface HeadMetaOptions {
+  name?: string;
+  content?: string;
+  property?: string;
+  charset?: string;
+  "http-equiv"?: string;
+}
+
+export interface HeadLinkOptions {
+  rel?: string;
+  href?: string;
+  type?: string;
+}
+
+export interface HeadScriptOptions {
+  src?: string;
+  type?: string;
+  defer?: boolean;
+}
+
+export interface HeadOptions {
+  title?: string;
+  meta?: HeadMetaOptions[];
+  link?: HeadLinkOptions[];
+  script?: HeadScriptOptions[];
+}

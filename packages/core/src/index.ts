@@ -8,7 +8,8 @@ export {
   registerDirective,
   applyDirectives,
   HOC,
-  MeasurePerformance
+  MeasurePerformance,
+  Head
 } from "./decorators";
 export type {
   ConcertSignalGetter,
