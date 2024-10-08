@@ -3,7 +3,6 @@ import { observeCleanupLifecycle } from "./lifecycle-hooks";
 import { RenderContext, setActiveRenderContext } from "./render-context";
 
 function traverse(layer: JSX.Element, element: HTMLElement): void {
-  console.log("layer: ", layer);
   if (Array.isArray(layer)) {
     layer.forEach(child => traverse(child, element));
   } else if (layer instanceof HTMLElement) {
@@ -15,7 +14,14 @@ function traverse(layer: JSX.Element, element: HTMLElement): void {
   }
 }
 
-export function mount(selector: string, component: ConcertComponent): void {
+type ConcertConfig = {
+  modules?: any[];
+  directives?: any[];
+  stores?: any[];
+  services?: any[];
+};
+
+export function mount(selector: string, component: ConcertComponent, _config: ConcertConfig): void {
   const rootRenderFunction = "render" in component ? component.render : component;
 
   const element = document.querySelector<HTMLElement>(selector);

@@ -119,7 +119,6 @@ function context() {
             const existingNode = activeKeyNodeMap.get(nodeKey)!;
 
             if (existingNode !== node) {
-              console.log("1. replacing child");
               replaceChild(element, node, existingNode);
             }
 
@@ -133,7 +132,6 @@ function context() {
         // Remove nodes that are no longer present
         activeKeyNodeMap.forEach((node, key) => {
           if (newActiveKeyNodeMap.has(key)) return;
-          console.log("2. removing child");
           element.removeChild(node);
           nodeCache.delete(key);
         });
@@ -152,14 +150,12 @@ function context() {
         if (isNode(childResult)) {
           const nextNode = childResult;
           if (nextNode !== activeNode) {
-            console.log("3. replacing child");
             replaceChild(element, nextNode, activeNode);
             activeNode = nextNode;
           }
         } else if (isPrimitive(childResult)) {
           const nextNode = document.createTextNode(String(childResult));
           if (nextNode !== activeNode) {
-            console.log("4. replacing child");
             replaceChild(element, nextNode, activeNode);
             activeNode = nextNode;
           }
@@ -170,8 +166,6 @@ function context() {
 
       return (): void => {
         if (activeNode) {
-          console.debug("cleanup: handleTagElementFunctionChild: ", activeNode);
-          console.log("5. replacing child");
           element.removeChild(activeNode);
         } else if (activeKeyNodeMap.size) {
           element.innerHTML = "";

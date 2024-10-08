@@ -1,7 +1,7 @@
 export { signal, memo, effect } from "@concertjs/reactivity";
 
 export { mount, h, onMount, onCleanup } from "./render-engine";
-export { Route, ConcertRouteSlot } from "./routing";
+export { Route, RouteOutlet, WithRouter, UseRouter, Link } from "./routing";
 export {
   ConcertLog,
   Directive,
@@ -16,5 +16,9 @@ export type {
   ConcertSignalSetter,
   ConcertSignal,
   ConcertEffectFn,
-  MeasurePerformanceOptions
+  MeasurePerformanceOptions,
+  RouterOptions,
+  RouteOptions,
+  RouteOptionsWithComponent,
+  Router
 } from "./types";

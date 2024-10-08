@@ -28,6 +28,7 @@ export type _ElementDescriptor = {
   key: string;
   kind: "class" | "method" | "field";
   placement: "static" | "prototype";
+  elements: _ElementDescriptor[];
 };
 
 export interface MeasurePerformanceOptions {
@@ -61,3 +62,31 @@ export interface HeadOptions {
   link?: HeadLinkOptions[];
   script?: HeadScriptOptions[];
 }
+
+export interface RouterOptions {
+  type: "memory" | "browser";
+}
+
+export interface RouteOptions<P = Record<string, any>> {
+  path: string;
+  name: string;
+  props?: P | (() => MaybePromise<P>);
+  exact?: boolean;
+  beforeEntry?: () => MaybePromise<void>;
+  afterEntry?: () => MaybePromise<void>;
+  beforeRender?: () => MaybePromise<void>;
+  beforeLeave?: () => MaybePromise<void>;
+  afterLeave?: () => MaybePromise<void>;
+  fallbackPage?: ConcertComponent<unknown>;
+}
+
+export type RouteOptionsWithComponent = RouteOptions & {
+  component: ConcertComponent;
+};
+
+export interface Router {
+  activePath: ConcertSignalGetter<string>;
+  navigate: (path: string) => void;
+}
+
+type MaybePromise<T> = T | Promise<T>;

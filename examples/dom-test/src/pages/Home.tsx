@@ -13,8 +13,23 @@ import { ToDoList } from "../components/ToDoList";
 import { useClock } from "../hooks/clock";
 import { TooltipDirective } from "../directives/tooltip";
 
+interface Props {
+  isRouted: boolean;
+}
+
 @Head({ title: "Home Page" })
-@Route("/")
+@Route<Props>({
+  path: "/",
+  name: "home-page",
+  props: { isRouted: true },
+  exact: true,
+  beforeEntry: () => {
+    console.log("beforeEntry");
+  },
+  afterEntry: () => {
+    console.log("afterEntry");
+  }
+})
 @Directive([["tooltip", TooltipDirective]])
 @ConcertLog
 export class Home {

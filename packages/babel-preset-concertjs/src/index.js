@@ -6,7 +6,7 @@ const transformClassProperties = require("@babel/plugin-transform-class-properti
 const transformRuntime = require("@babel/plugin-transform-runtime");
 const transformConcertJSX = require("@concertjs/babel-plugin-transform-concertjs-jsx");
 
-const collectConcertRoutes = require("./plugins/collect-concertjs-routes");
+// const collectConcertRoutes = require("./plugins/collect-concertjs-routes");
 const importConcertPragma = require("./plugins/import-concertjs-pragma");
 const registerConcertDirectives = require("./plugins/register-concertjs-directives");
 
@@ -19,7 +19,7 @@ module.exports = function BabelPresetConcertJS(api, options = {}) {
       presetTypescript
     ],
     plugins: [
-      collectConcertRoutes,
+      // collectConcertRoutes,
       registerConcertDirectives,
       [decorators, { decoratorsBeforeExport: true }],
       [transformClassProperties, { loose: false }],

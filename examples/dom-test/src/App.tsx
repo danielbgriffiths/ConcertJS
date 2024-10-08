@@ -1,22 +1,28 @@
-import { ConcertLog, onMount, onCleanup, MeasurePerformance } from "@concertjs/core";
+import { RouteOutlet, WithRouter, UseRouter, effect, Link } from "@concertjs/core";
 
-import { Home } from "./pages/Home";
-
-@ConcertLog
+@WithRouter({
+  type: "memory"
+})
 export class App {
-  @MeasurePerformance({ name: "App" })
-  static render() {
-    onMount(() => {
-      console.log("Mounted App");
-    });
-
-    onCleanup(() => {
-      console.log("Cleaned up App");
+  @UseRouter
+  static render(props, context) {
+    effect(() => {
+      console.log("route: ", props, context, context?.router?.activeRoute?.());
     });
 
     return (
       <div class="app-wrapper">
-        <Home />
+        <nav>
+          <ul>
+            <li>
+              <Link href="/">Home</Link>
+            </li>
+            <li>
+              <Link href="/contact">Contact</Link>
+            </li>
+          </ul>
+        </nav>
+        <RouteOutlet />
       </div>
     );
   }
