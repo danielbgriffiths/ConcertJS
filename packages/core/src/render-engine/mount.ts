@@ -1,6 +1,7 @@
 import { ConcertComponent } from "../types";
 import { observeCleanupLifecycle } from "./lifecycle-hooks";
 import { RenderContext, setActiveRenderContext } from "./render-context";
+import { seedDefaultHeadOptions } from "../decorators/head";
 
 function traverse(layer: JSX.Element, element: HTMLElement): void {
   if (Array.isArray(layer)) {
@@ -29,6 +30,8 @@ export function mount(selector: string, component: ConcertComponent, _config: Co
   if (!element) {
     throw new Error(`No element found for selector ${selector}`);
   }
+
+  seedDefaultHeadOptions();
 
   let renderedRootComponent!: JSX.Element;
 

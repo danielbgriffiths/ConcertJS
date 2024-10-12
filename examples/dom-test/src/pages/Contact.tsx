@@ -1,36 +1,36 @@
-import { Head, Route } from "@concertjs/core";
+import { Head, onMount, Route, UseRouter } from "@concertjs/core";
 
 interface Props {
-  isRouted: boolean;
+  ContactRouteHit: boolean;
 }
 
 @Head({
-  title: "Contact Page"
+  title: "Contact Page",
+  meta: [{ name: "description", content: "Contact us for more information" }]
 })
 @Route<Props>({
   path: "/contact",
-  name: "contact-page",
   props: async (): Promise<Props> => {
     return new Promise<Props>(resolve => {
       setTimeout(() => {
-        resolve({ isRouted: true });
-      }, 1000);
+        console.log("Contact props resolved");
+        resolve({ ContactRouteHit: "Hit!" });
+      }, 5000);
     });
   },
-  exact: true,
-  beforeEntry: () => {
-    console.log("beforeEntry");
-  },
-  afterEntry: () => {
-    console.log("afterEntry");
-  }
+  exact: true
 })
 export class Contact {
-  static render(props: Props) {
+  @UseRouter
+  static render(props: Props, context) {
+    onMount(() => {
+      console.log("Contact: ", props, context);
+    });
+
     return (
       <div>
         <h1>Contact</h1>
-        <p>Send us an email at</p>
+        <p>Send us an email at {JSON.stringify(props)}</p>
       </div>
     );
   }

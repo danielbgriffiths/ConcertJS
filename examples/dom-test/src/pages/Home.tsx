@@ -1,60 +1,29 @@
-import {
-  ConcertLog,
-  onCleanup,
-  onMount,
-  Route,
-  Directive,
-  MeasurePerformance,
-  Head
-} from "@concertjs/core";
-
-import { Counter } from "../components/Counter";
-import { ToDoList } from "../components/ToDoList";
-import { useClock } from "../hooks/clock";
-import { TooltipDirective } from "../directives/tooltip";
+import { Route, Head } from "@concertjs/core";
 
 interface Props {
-  isRouted: boolean;
+  homeRouteHit: boolean;
 }
 
-@Head({ title: "Home Page" })
+@Head({
+  title: "Home Page",
+  meta: [{ name: "description", content: "This is the home page" }]
+})
 @Route<Props>({
   path: "/",
-  name: "home-page",
-  props: { isRouted: true },
+  props: () => ({
+    homeRouteHit: true
+  }),
   exact: true,
   beforeEntry: () => {
-    console.log("beforeEntry");
-  },
-  afterEntry: () => {
-    console.log("afterEntry");
+    console.log("Home: beforeEntry");
   }
 })
-@Directive([["tooltip", TooltipDirective]])
-@ConcertLog
 export class Home {
-  @MeasurePerformance({ name: "Home" })
-  static render() {
-    const clock = useClock();
-
-    onMount(() => {
-      console.log("Mounted Home");
-    });
-
-    onCleanup(() => {
-      console.log("Cleaned up Home");
-    });
-
+  static render(props: Props) {
     return (
       <div class="home-wrapper">
-        <div>
-          <h1 use-tooltip={{ content: "Some Tooltip Text" }}>Home Page</h1>
-          <div>
-            <p>{clock.time()}</p>
-          </div>
-        </div>
-        <Counter />
-        <ToDoList />
+        <h1>Home Page</h1>
+        <div>This is the home page {JSON.stringify(props)}</div>
       </div>
     );
   }

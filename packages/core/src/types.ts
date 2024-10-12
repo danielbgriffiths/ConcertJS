@@ -29,6 +29,7 @@ export type _ElementDescriptor = {
   kind: "class" | "method" | "field";
   placement: "static" | "prototype";
   elements: _ElementDescriptor[];
+  finisher?: (cls: FunctionConstructor) => void;
 };
 
 export interface MeasurePerformanceOptions {
@@ -63,13 +64,16 @@ export interface HeadOptions {
   script?: HeadScriptOptions[];
 }
 
+export type HeadOptionsWithCache = HeadOptions & {
+  nodeCache: Map<"title" | "meta" | "link" | "script" | "others", HTMLElement | HTMLElement[]>;
+};
+
 export interface RouterOptions {
   type: "memory" | "browser";
 }
 
 export interface RouteOptions<P = Record<string, any>> {
   path: string;
-  name: string;
   props?: P | (() => MaybePromise<P>);
   exact?: boolean;
   beforeEntry?: () => MaybePromise<void>;
@@ -82,11 +86,18 @@ export interface RouteOptions<P = Record<string, any>> {
 
 export type RouteOptionsWithComponent = RouteOptions & {
   component: ConcertComponent;
+  className: string;
 };
 
 export interface Router {
   activePath: ConcertSignalGetter<string>;
   navigate: (path: string) => void;
+  params: ConcertSignalGetter<RouteParams>;
+  query: ConcertSignalGetter<RouteQuery>;
 }
 
-type MaybePromise<T> = T | Promise<T>;
+export type MaybePromise<T> = T | Promise<T>;
+
+export type RouteParams = { [key: string]: string };
+
+export type RouteQuery = { [key: string]: string };

@@ -1,8 +1,6 @@
 import { RouteOutlet, WithRouter, UseRouter, effect, Link } from "@concertjs/core";
 
-@WithRouter({
-  type: "memory"
-})
+@WithRouter({ type: "memory" })
 export class App {
   @UseRouter
   static render(props, context) {
@@ -19,6 +17,18 @@ export class App {
             </li>
             <li>
               <Link href="/contact">Contact</Link>
+            </li>
+            <li>
+              <Link href="/users">Users</Link>
+            </li>
+            <li>
+              <Link href="/users/1">User</Link>
+            </li>
+            <li>
+              <Link href="/dashboard/details">Dashboard Details</Link>
+            </li>
+            <li>
+              <Link href="/dashboard/overview">Dashboard Overview</Link>
             </li>
           </ul>
         </nav>
