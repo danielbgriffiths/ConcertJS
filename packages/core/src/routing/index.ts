@@ -7,11 +7,18 @@ import {
   Router,
   RouteParams,
   RouteQuery,
-  ConcertSignal,
-  ConcertComponent
+  RouteNode,
+  MatchedRoute,
+  ConcertStructuralComponent,
+  ConcertFunctionalComponent
 } from "../types";
-import { ConcertSignalSetter, effect, memo, signal } from "@concertjs/reactivity";
+import { ConcertSignalSetter, effect, signal } from "@concertjs/reactivity";
 import { refreshDOMHead } from "../decorators/head";
+
+let router: Router | null = null;
+const routeTree = {
+  children: []
+} as unknown as RouteNode;
 
 /**
  * Handles the transition between two routes
@@ -57,21 +64,30 @@ export function routerCreator(options: RouterOptions): Router {
   );
   const [params, setParams] = signal<RouteParams>({});
   const [query, setQuery] = signal<RouteQuery>({});
+  const [matchedRoutes, setMatchedRoutes] = signal<MatchedRoute[]>([]);
 
   effect(() => {
     const nextActivePath: string = activePath();
-    const nextQuery: RouteQuery = parsePathQuery(nextActivePath);
-    const nextParams: RouteParams = parsePathParams(nextActivePath);
-    setQuery(nextQuery);
-    setParams(nextParams);
+    const routes = matchRoutes(nextActivePath);
+
+    setMatchedRoutes(routes);
+    setParams(routes[routes.length - 1]?.params || {});
+    setQuery(parsePathQuery(nextActivePath));
   });
 
   window.addEventListener("popstate", async (): Promise<void> => {
     const nextPath: string = window.location.pathname + window.location.search;
+
+    const nextMatchedRoutes = matchRoutes(nextPath);
+    const prevMatchedRoutes = matchRoutes(activePath());
+
+    const nextRouteOptions = nextMatchedRoutes[nextMatchedRoutes.length - 1]?.routeOptions;
+    const prevRouteOptions = prevMatchedRoutes[prevMatchedRoutes.length - 1]?.routeOptions;
+
     await handleNavigationTransition(
       () => setActivePath(nextPath),
-      findMatchingRoute(nextPath),
-      routeRegistry.get(activePath())
+      nextRouteOptions,
+      prevRouteOptions
     );
   });
 
@@ -83,10 +99,17 @@ export function routerCreator(options: RouterOptions): Router {
 
   window.addEventListener("pushstate", async (): Promise<void> => {
     const nextPath: string = window.location.pathname + window.location.search;
+
+    const nextMatchedRoutes = matchRoutes(nextPath);
+    const prevMatchedRoutes = matchRoutes(activePath());
+
+    const nextRouteOptions = nextMatchedRoutes[nextMatchedRoutes.length - 1]?.routeOptions;
+    const prevRouteOptions = prevMatchedRoutes[prevMatchedRoutes.length - 1]?.routeOptions;
+
     await handleNavigationTransition(
       () => setActivePath(nextPath),
-      findMatchingRoute(nextPath),
-      routeRegistry.get(activePath())
+      nextRouteOptions,
+      prevRouteOptions
     );
   });
 
@@ -102,29 +125,22 @@ export function routerCreator(options: RouterOptions): Router {
     return queryObj;
   }
 
-  function parsePathParams(path: string): RouteParams {
-    const paramsObj: RouteParams = {};
-    if (!path) return paramsObj;
-    const routeParts = path.split("/");
-    const pathParts = activePath().split("?")[0].split("/");
-    routeParts.forEach((part, index) => {
-      if (!part.startsWith(":")) return;
-      const paramName = part.substring(1);
-      paramsObj[paramName] = pathParts[index];
-    });
-    return paramsObj;
-  }
-
   async function navigate(nextPath: string): Promise<void> {
     if (nextPath === activePath()) return;
+
+    const nextMatchedRoutes = matchRoutes(nextPath);
+    const prevMatchedRoutes = matchRoutes(activePath());
+
+    const nextRouteOptions = nextMatchedRoutes[nextMatchedRoutes.length - 1]?.routeOptions;
+    const prevRouteOptions = prevMatchedRoutes[prevMatchedRoutes.length - 1]?.routeOptions;
 
     await handleNavigationTransition(
       () => {
         history.pushState(null, "", nextPath);
         setActivePath(nextPath);
       },
-      routeRegistry.get(nextPath),
-      routeRegistry.get(activePath())
+      nextRouteOptions,
+      prevRouteOptions
     );
   }
 
@@ -132,116 +148,199 @@ export function routerCreator(options: RouterOptions): Router {
     activePath,
     navigate,
     params,
-    query
+    query,
+    matchedRoutes
   };
 }
 
-let router: Router | null = null;
-const routeRegistry = new Map<string, RouteOptionsWithComponent>();
-
 /**
- * Finds the route that best matches the active path
- * Should consider dynamic parameters
- * Should fall back to the known not-found path
- * @param activePath - The current path
+ * Finds all routes that match the current path, starting at the root of the route tree
+ * @param path - The current path
  */
-function findMatchingRoute(activePath: string): RouteOptionsWithComponent {
-  type PathObject = {
-    path: string;
-    parts: string[];
-  };
+function matchRoutes(path: string): MatchedRoute[] {
+  const segments = path.startsWith("/") ? path.slice(1).split("/") : path.split("/");
+  const matchedRoutes: MatchedRoute[] = [];
+  let params: RouteParams = {};
+  let currentNode = routeTree;
 
-  function getURLParts(url: string): string[] {
-    if (url === "/") return [""];
-    if (url.startsWith("/")) url = url.slice(1);
-    if (url.endsWith("/")) url = url.slice(0, url.length - 1);
-    return url.split("/");
-  }
+  for (const segment of segments) {
+    let childNode = currentNode.children.find(child => {
+      return child.pathSegment === segment;
+    });
 
-  const pathObjects: PathObject[] = Array.from(routeRegistry.keys()).map(
-    (path: string): PathObject => ({
-      parts: getURLParts(path),
-      path
-    })
-  );
-  const hrefParts: string[] = getURLParts(activePath.split("?")[0]);
-
-  if (hrefParts.length === 1 && hrefParts.at(0) === "") {
-    return routeRegistry.get("/") ?? routeRegistry.get("*")!;
-  }
-
-  for (const pathObject of pathObjects) {
-    if (pathObject.parts.join("") === hrefParts.join("")) {
-      return routeRegistry.get(pathObject.path) ?? routeRegistry.get("*")!;
+    if (!childNode) {
+      childNode = currentNode.children.find(child => {
+        return child.pathSegment.startsWith(":");
+      });
     }
-  }
 
-  const possibleMatches: Set<PathObject> = new Set<PathObject>();
-
-  for (const pathObject of pathObjects) {
-    if (pathObject.parts.length === hrefParts.length) {
-      possibleMatches.add(pathObject);
+    if (!childNode) {
+      break;
     }
-  }
 
-  for (const possibleMatch of possibleMatches) {
-    for (let i = 0; i < possibleMatch.parts.length; i++) {
-      if (possibleMatch.parts[i] !== hrefParts[i] && !possibleMatch.parts[i].startsWith(":")) {
-        possibleMatches.delete(possibleMatch);
-      }
+    if (childNode.pathSegment.startsWith(":")) {
+      const paramName = childNode.pathSegment.slice(1);
+      params[paramName] = segment;
     }
+
+    if (childNode.routeOptions) {
+      matchedRoutes.push({
+        routeOptions: childNode.routeOptions,
+        params: { ...params }
+      });
+    }
+
+    currentNode = childNode;
   }
 
-  const match: PathObject | undefined = Array.from(possibleMatches).sort().pop();
-
-  return routeRegistry.get(match?.path ?? "*")!;
+  return matchedRoutes;
 }
 
 /**
  * Component that renders the active route at the current path layer
- * TODO: This should support nested outlets. ie. App(RouteOutlet) -> view Dashboard(RouteOutlet) -> sub-view DashboardOverview
- * TODO: Async props resolution should work with fine-grained-reactivity instead of full DOM re-rendering
+ * TODO (low): Async props resolution should work with fine-grained-reactivity instead of full DOM re-rendering
+ * TODO (critical): Fix infinite loop when navigating to nested route, revert to old impl. Move routeLevel out to global state. Simplify effect use
  */
 export function RouteOutlet() {
-  let previousRouteOptions!: RouteOptionsWithComponent;
-
   if (!router) {
     throw new Error("Router not found in RouteOutlet component context.");
   }
 
-  const activeRoute = memo<RouteOptionsWithComponent>(() =>
-    findMatchingRoute(router!.activePath())
-  );
-  const [props, setProps] = signal<Record<string, any>>({});
+  let routeLevel: number = 0;
+  let previousMatchedRoute!: MatchedRoute;
 
-  effect(() => {
-    const activeRouteOptions = activeRoute();
+  return function renderView() {
+    const matchedRoutes = router!.matchedRoutes();
+    const matchedRoute = matchedRoutes[routeLevel];
 
-    handleProps(activeRouteOptions.path, activeRouteOptions.props);
-
-    refreshDOMHead(activeRouteOptions.className, previousRouteOptions?.className);
-
-    previousRouteOptions = activeRouteOptions!;
-  });
-
-  function handleProps(pathUid: string, nextProps: RouteOptions["props"]): void {
-    if (typeof nextProps === "function") {
-      const result = nextProps();
-      if (result instanceof Promise) {
-        setProps({});
-        result.then(resolvedProps => {
-          if (pathUid !== router!.activePath()) return;
-          setProps(resolvedProps);
-        });
-      } else {
-        setProps(result);
-      }
-    } else {
-      setProps(nextProps ?? {});
+    if (!matchedRoute) {
+      return null;
     }
+
+    const [props, setProps] = signal<Record<string, any>>({});
+
+    handleProps(matchedRoute.routeOptions.path, matchedRoute.routeOptions.props, setProps);
+
+    const componentRenderFn: ConcertFunctionalComponent =
+      (matchedRoute.routeOptions.component as ConcertStructuralComponent).render ||
+      (matchedRoute.routeOptions.component as ConcertFunctionalComponent);
+
+    function wrappedRender(p: any, c: any) {
+      routeLevel++;
+      const content = componentRenderFn(p, c);
+      routeLevel--;
+      return content;
+    }
+
+    // refreshDOMHead(
+    //   matchedRoute.routeOptions.className,
+    //   previousMatchedRoute.routeOptions?.className
+    // );
+
+    previousMatchedRoute = matchedRoute;
+
+    return h(wrappedRender, props());
+  };
+}
+
+function handleProps(
+  pathUid: string,
+  nextProps: RouteOptions["props"],
+  setProps: ConcertSignalSetter
+): void {
+  if (typeof nextProps === "function") {
+    const result = nextProps();
+    if (result instanceof Promise) {
+      setProps({ isLoading: true });
+      result.then(resolvedProps => {
+        if (pathUid !== router!.activePath()) return;
+        setProps({ ...resolvedProps, isLoading: false });
+      });
+    } else {
+      setProps(result);
+    }
+  } else {
+    setProps(nextProps ?? {});
+  }
+}
+
+// export function RouteOutlet() {
+//   let previousMatchedRoute!: MatchedRoute;
+//
+//   if (!router) {
+//     throw new Error("Router not found in RouteOutlet component context.");
+//   }
+//
+//   let routeLevel = 0;
+//
+//   const [activeRoute, setActiveRoute] = signal<MatchedRoute>(router!.matchedRoutes()[routeLevel]);
+//   const [props, setProps] = signal<Record<string, any>>({});
+//
+//   effect(() => {
+//     setActiveRoute(router!.matchedRoutes()[routeLevel]);
+//   });
+//
+//   effect(() => {
+//     const matchedRoute = activeRoute();
+//
+//     console.log(
+//       "matchedRoute: ",
+//       matchedRoute.routeOptions.path,
+//       matchedRoute.routeOptions.className
+//     );
+//
+//     handleProps(matchedRoute.routeOptions.path, matchedRoute.routeOptions.props);
+//
+//     refreshDOMHead(
+//       matchedRoute.routeOptions.className,
+//       previousMatchedRoute?.routeOptions?.className
+//     );
+//
+//     previousMatchedRoute = matchedRoute!;
+//   });
+//
+//   function handleProps(pathUid: string, nextProps: RouteOptions["props"]): void {
+//     if (typeof nextProps === "function") {
+//       const result = nextProps();
+//       if (result instanceof Promise) {
+//         setProps({ isLoading: true });
+//         result.then(resolvedProps => {
+//           if (pathUid !== router!.activePath()) return;
+//           setProps({ ...resolvedProps, isLoading: false });
+//         });
+//       } else {
+//         setProps(result);
+//       }
+//     } else {
+//       setProps(nextProps ?? {});
+//     }
+//   }
+//
+//   return () => h(activeRoute().routeOptions.component ?? "template", props());
+// }
+
+/**
+ * Inserts a route into the route tree
+ * @param path - The path to insert
+ * @param routeOptions - The route options
+ */
+function insertRoute(path: string, routeOptions: RouteOptionsWithComponent): void {
+  const segments = path.startsWith("/") ? path.slice(1).split("/") : path.split("/");
+  let currentNode = routeTree;
+
+  for (const segment of segments) {
+    let childNode = currentNode.children.find(child => child.pathSegment === segment);
+    if (!childNode) {
+      childNode = {
+        pathSegment: segment,
+        children: []
+      };
+      currentNode.children.push(childNode);
+    }
+    currentNode = childNode;
   }
 
-  return () => h(activeRoute().component ?? "template", props());
+  currentNode.routeOptions = routeOptions;
 }
 
 /**
@@ -255,18 +354,15 @@ export function Route<P extends Record<string, any>>(options: RouteOptions<P>) {
     return {
       ...element,
       finisher(cls: FunctionConstructor): void {
-        if (routeRegistry.has(options.path)) {
-          console.warn(`${cls.name} route for path "${options.path}" is already registered.`);
-          return;
-        }
-
         const renderFn = element.elements.find(el => el.key === "render")?.descriptor.value;
 
         if (!renderFn) {
           console.warn("Unable to find render function in component");
         }
 
-        routeRegistry.set(options.path, { ...options, component: renderFn, className: cls.name });
+        const routeOptionsWithComponent = { ...options, component: renderFn, className: cls.name };
+
+        insertRoute(options.path, routeOptionsWithComponent);
       }
     };
   };

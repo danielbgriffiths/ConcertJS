@@ -23,6 +23,10 @@ export type ConcertPropsWithChildren = {
   children: JSX.Element | JSX.Element[];
 };
 
+export type PropsWithChildren<P> = {
+  children: JSX.Element | JSX.Element[];
+} & P;
+
 export type _ElementDescriptor = {
   descriptor: PropertyDescriptor;
   key: string;
@@ -94,6 +98,7 @@ export interface Router {
   navigate: (path: string) => void;
   params: ConcertSignalGetter<RouteParams>;
   query: ConcertSignalGetter<RouteQuery>;
+  matchedRoutes: ConcertSignalGetter<MatchedRoute[]>;
 }
 
 export type MaybePromise<T> = T | Promise<T>;
@@ -101,3 +106,14 @@ export type MaybePromise<T> = T | Promise<T>;
 export type RouteParams = { [key: string]: string };
 
 export type RouteQuery = { [key: string]: string };
+
+export type RouteNode = {
+  pathSegment: string;
+  routeOptions?: RouteOptionsWithComponent;
+  children: RouteNode[];
+};
+
+export type MatchedRoute = {
+  routeOptions: RouteOptionsWithComponent;
+  params: RouteParams;
+};

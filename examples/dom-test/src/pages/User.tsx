@@ -18,7 +18,7 @@ export class User {
   static render(props: Props, context) {
     return (
       <div>
-        <h1>User {context.router.params.id}</h1>
+        <h1>User {context.router?.params()?.id}</h1>
         <p>{JSON.stringify(props)}</p>
       </div>
     );

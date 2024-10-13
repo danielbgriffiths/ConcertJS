@@ -13,10 +13,7 @@ interface Props {
   props: () => ({
     homeRouteHit: true
   }),
-  exact: true,
-  beforeEntry: () => {
-    console.log("Home: beforeEntry");
-  }
+  exact: true
 })
 export class Home {
   static render(props: Props) {
