@@ -9,7 +9,8 @@
     "babel-build": "babel src --out-dir dist --extensions \".ts,.tsx\""
   },
   "dependencies": {
-    "@concertjs/core": "workspace:*"
+    "@concertjs/core": "workspace:*",
+    "@concertjs/router": "workspace:*"
   },
   "devDependencies": {
     "@babel/cli": "^7.x",

@@ -1,13 +1,12 @@
-import { RouteOutlet, WithRouter, UseRouter, effect, Link } from "@concertjs/core";
+import { Link, WithRouter } from "@concertjs/router";
+import type { PropsWithChildren } from "@concertjs/core";
+import { routes } from "./routes";
 
-@WithRouter({ type: "memory" })
+type Props = PropsWithChildren;
+
+@WithRouter(routes)
 export class App {
-  @UseRouter
-  static render(props, context) {
-    effect(() => {
-      console.log("route: ", props, context, context?.router?.activeRoute?.());
-    });
-
+  static render(props: Props) {
     return (
       <div class="app-wrapper">
         <nav>
@@ -32,7 +31,7 @@ export class App {
             </li>
           </ul>
         </nav>
-        <RouteOutlet />
+        <div>{props.children}</div>
       </div>
     );
   }

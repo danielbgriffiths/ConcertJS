@@ -1,17 +1,12 @@
-import { Head, Route } from "@concertjs/core";
+import { Head } from "@concertjs/core";
 
-interface Props {
-  isRouted: boolean;
+export interface Props {
+  pageName: string;
 }
 
 @Head({
   title: "Users Page",
   meta: [{ name: "description", content: "Users" }]
-})
-@Route<Props>({
-  path: "/users",
-  props: { isRouted: true },
-  exact: true
 })
 export class Users {
   static render(props: Props) {

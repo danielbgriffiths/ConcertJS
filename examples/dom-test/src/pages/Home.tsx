@@ -1,4 +1,4 @@
-import { Route, Head } from "@concertjs/core";
+import { Head } from "@concertjs/core";
 
 interface Props {
   homeRouteHit: boolean;
@@ -7,13 +7,6 @@ interface Props {
 @Head({
   title: "Home Page",
   meta: [{ name: "description", content: "This is the home page" }]
-})
-@Route<Props>({
-  path: "/",
-  props: () => ({
-    homeRouteHit: true
-  }),
-  exact: true
 })
 export class Home {
   static render(props: Props) {

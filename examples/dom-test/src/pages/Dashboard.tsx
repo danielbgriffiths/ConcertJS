@@ -1,24 +1,12 @@
-import { Head, Route, RouteOutlet } from "@concertjs/core";
+import { Head, PropsWithChildren } from "@concertjs/core";
 
-interface Props {
+type Props = PropsWithChildren<{
   isRouted: boolean;
-}
+}>;
 
 @Head({
   title: "Dashboard Page",
   meta: [{ name: "description", content: "Dashboard" }]
-})
-@Route<Props>({
-  path: "/dashboard",
-  props: async (): Promise<Props> => {
-    return new Promise<Props>(resolve => {
-      setTimeout(() => {
-        console.log("props resolved");
-        resolve({ isRouted: false });
-      }, 5000);
-    });
-  },
-  exact: true
 })
 export class Dashboard {
   static render(props: Props) {
@@ -26,7 +14,7 @@ export class Dashboard {
       <div>
         <h1>Dashboard</h1>
         <p>{JSON.stringify(props)}</p>
-        <RouteOutlet />
+        {props.children}
       </div>
     );
   }

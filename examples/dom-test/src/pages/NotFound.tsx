@@ -1,8 +1,3 @@
-import { Route } from "@concertjs/core";
-
-@Route({
-  path: "*"
-})
 export class NotFound {
   static render() {
     return (

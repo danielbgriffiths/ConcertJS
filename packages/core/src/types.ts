@@ -8,7 +8,7 @@ export type ConcertEffectFn = () => void;
 
 export type ConcertInstance = {};
 
-export declare class ConcertStructuralComponent<P = any> {
+export declare class ConcertStructuralComponent<P = {}> {
   render: ConcertFunctionalComponent<P>;
 }
 
@@ -19,13 +19,9 @@ export type ConcertFunctionalComponent<P = any> = (
 
 export type ConcertComponent<P = any> = ConcertStructuralComponent | ConcertFunctionalComponent<P>;
 
-export type ConcertPropsWithChildren = {
+export type PropsWithChildren<P = {}> = P & {
   children: JSX.Element | JSX.Element[];
 };
-
-export type PropsWithChildren<P> = {
-  children: JSX.Element | JSX.Element[];
-} & P;
 
 export type _ElementDescriptor = {
   descriptor: PropertyDescriptor;
@@ -70,50 +66,4 @@ export interface HeadOptions {
 
 export type HeadOptionsWithCache = HeadOptions & {
   nodeCache: Map<"title" | "meta" | "link" | "script" | "others", HTMLElement | HTMLElement[]>;
-};
-
-export interface RouterOptions {
-  type: "memory" | "browser";
-}
-
-export interface RouteOptions<P = Record<string, any>> {
-  path: string;
-  props?: P | (() => MaybePromise<P>);
-  exact?: boolean;
-  beforeEntry?: () => MaybePromise<void>;
-  afterEntry?: () => MaybePromise<void>;
-  beforeRender?: () => MaybePromise<void>;
-  beforeLeave?: () => MaybePromise<void>;
-  afterLeave?: () => MaybePromise<void>;
-  fallbackPage?: ConcertComponent<unknown>;
-}
-
-export type RouteOptionsWithComponent = RouteOptions & {
-  component: ConcertComponent;
-  className: string;
-};
-
-export interface Router {
-  activePath: ConcertSignalGetter<string>;
-  navigate: (path: string) => void;
-  params: ConcertSignalGetter<RouteParams>;
-  query: ConcertSignalGetter<RouteQuery>;
-  matchedRoutes: ConcertSignalGetter<MatchedRoute[]>;
-}
-
-export type MaybePromise<T> = T | Promise<T>;
-
-export type RouteParams = { [key: string]: string };
-
-export type RouteQuery = { [key: string]: string };
-
-export type RouteNode = {
-  pathSegment: string;
-  routeOptions?: RouteOptionsWithComponent;
-  children: RouteNode[];
-};
-
-export type MatchedRoute = {
-  routeOptions: RouteOptionsWithComponent;
-  params: RouteParams;
 };
